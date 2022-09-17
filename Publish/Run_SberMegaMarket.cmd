@@ -1,0 +1,1 @@
+"net452\CefSharp.MinimalExample.WinForms.exe" SberMegaMarket

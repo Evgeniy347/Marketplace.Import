@@ -5,60 +5,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Marketplace.Import
 {
-    public class WatchDog : IDisposable
-    {
-        private readonly Thread _thread;
-        private readonly Action _action;
-        private readonly int _timeout;
-        private DateTime _lastReset;
-        private bool _disposed;
-
-        public WatchDog(Action action, int timeout)
-        {
-            _action = action;
-            Reset();
-            _timeout = timeout;
-            _thread = new Thread(Work)
-            {
-                Name = "WatchDog",
-                IsBackground = true
-            };
-            _thread.Start();
-        }
-
-        private void Work()
-        {
-            while (!_disposed)
-            {
-                DateTime nextReset = _lastReset.AddMilliseconds(_timeout);
-
-                if (nextReset < DateTime.Now)
-                {
-                    _action.Invoke();
-                    return;
-                }
-
-                Thread.Sleep(nextReset - DateTime.Now);
-            }
-        }
-
-        public void Reset()
-        {
-            _lastReset = DateTime.Now;
-        }
-
-        public void Dispose()
-        {
-            _disposed = true;
-        }
-    }
-
     internal class ScriptHandler
     {
         private readonly ChromiumWebBrowser _browser;
@@ -67,12 +18,14 @@ namespace Marketplace.Import
         private ScriptSetting _currentScript;
 
         private WatchDog _WatchDog;
+        public bool WatchDogEnable { get; set; }
         private int _countAttempts;
         public ScriptHandler(ChromiumWebBrowser browser)
         {
             _browser = browser;
             //Событие изменения статуса рендера страницы
             browser.LoadingStateChanged += OnLoadingStateChanged;
+
             //Событие console.log
             browser.ConsoleMessage += OnConsoleMessage;
         }
@@ -89,17 +42,17 @@ namespace Marketplace.Import
                 if (e.Message.StartsWith(_jsonContextKey))
                 {
                     _jsonContextValue = e.Message;
-                    _WatchDog.Reset();
+                    _WatchDog?.Reset();
                 }
                 else if (e.Message.StartsWith("FileReportUrl:"))
                 {
                     string url = e.Message.Replace("FileReportUrl:", "");
-                    _WatchDog.Dispose();
+                    _WatchDog?.Dispose();
                     _browser.StartDownload(url);
                 }
                 else if (e.Message.StartsWith("WatchDogReset"))
                 {
-                    _WatchDog.Reset();
+                    _WatchDog?.Reset();
                 }
             }
         }
@@ -152,14 +105,17 @@ namespace Marketplace.Import
 
             if (_currentScript.WatchDog > 0)
             {
-                WatchDog current = _WatchDog;
-                _WatchDog = new WatchDog(() =>
+                if (WatchDogEnable)
                 {
-                    RunAsynk(scriptName, true);
-                }
-                , _currentScript.WatchDog);
+                    WatchDog current = _WatchDog;
+                    _WatchDog = new WatchDog(() =>
+                    {
+                        RunAsynk(scriptName, true);
+                    }
+                    , _currentScript.WatchDog);
 
-                current?.Dispose();
+                    current?.Dispose();
+                }
             }
 
             return _browser.LoadUrlAsync(_currentScript.StartUrl)
@@ -215,7 +171,7 @@ namespace Marketplace.Import
                 int endIndex = result.IndexOf('}', startIndex + 1);
 
                 string login = result.Substring(startIndex + passwordKey.Length, endIndex - startIndex - passwordKey.Length);
-                string password = AppSetting.PasswordManager.GetPassword(login);
+                string password = AppSetting.PasswordManager.GetPassword(login) ?? string.Empty;
 
                 result = result.Remove(startIndex, endIndex - startIndex + 1);
                 result = result.Insert(startIndex, password);

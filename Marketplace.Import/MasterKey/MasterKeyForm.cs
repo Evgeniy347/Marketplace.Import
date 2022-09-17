@@ -37,8 +37,7 @@ namespace Marketplace.Import.MasterKey
             {
                 Login = login
             };
-
-            int i = 0;
+             
             row.Cells.Add(new DataGridViewTextBoxCell() { Value = login });
             row.Cells.Add(new DataGridViewTextBoxCell() { Value = _hideChangePasswor });
 

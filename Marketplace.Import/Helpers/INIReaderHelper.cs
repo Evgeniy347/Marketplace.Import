@@ -43,7 +43,7 @@ namespace Marketplace.Import.Helpers
                 if (string.IsNullOrEmpty(formatLine) || formatLine.StartsWith("#"))
                     continue;
 
-                if (formatLine.Length > 0 && formatLine[0] == '[' && formatLine[formatLine.Length - 1] == ']')
+                if (formatLine[0] == '[' && formatLine[formatLine.Length - 1] == ']')
                 {
                     formatLine = formatLine.TrimStart('[').TrimEnd(']');
                     if (_defaulteSection.Name == formatLine)

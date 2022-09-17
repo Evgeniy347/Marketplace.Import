@@ -3,7 +3,24 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marketplace.Import", "Marketplace.Import.csproj", "{C043FFF7-5F71-4FFC-989A-E09E18548589}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Publish", "Publish", "{4F4BCBA8-D8A5-4682-9566-62535A2D829D}"
+	ProjectSection(SolutionItems) = preProject
+		Publish\cryptData.csv = Publish\cryptData.csv
+		Publish\Run_SberMegaMarket.cmd = Publish\Run_SberMegaMarket.cmd
+		Publish\Run_ScriptAliexpress.cmd = Publish\Run_ScriptAliexpress.cmd
+		Publish\Scripts.ini = Publish\Scripts.ini
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{24DB4A95-582F-4618-BB1C-8D7807486609}"
+	ProjectSection(SolutionItems) = preProject
+		Publish\Scripts\Aliexpress.js = Publish\Scripts\Aliexpress.js
+		Publish\Scripts\Common.js = Publish\Scripts\Common.js
+		Publish\Scripts\Kazanexpress.js = Publish\Scripts\Kazanexpress.js
+		Publish\Scripts\lamoda.js = Publish\Scripts\lamoda.js
+		Publish\Scripts\sbermegamarket.js = Publish\Scripts\sbermegamarket.js
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marketplace.Import", "Marketplace.Import\Marketplace.Import.csproj", "{C043FFF7-5F71-4FFC-989A-E09E18548589}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +47,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{24DB4A95-582F-4618-BB1C-8D7807486609} = {4F4BCBA8-D8A5-4682-9566-62535A2D829D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1FF83CB5-F7E3-43E2-B81D-B31E6C89F855}

@@ -13,9 +13,17 @@ namespace Marketplace.Import
     internal static class AppSetting
     {
         private static readonly object _lock = new object();
-        private static bool _init;
+        private static volatile bool _init;
 
-        public static readonly string RootFolder = Path.GetDirectoryName(Path.GetDirectoryName(typeof(AppSetting).Assembly.Location));
+        private static string _RootFolder;
+        public static string RootFolder
+        {
+            get
+            {
+                EnsureSettingsLoaded();
+                return _RootFolder;
+            }
+        }
 
         private static string _FileFolderReport;
         public static string FileFolderReport
@@ -90,13 +98,22 @@ namespace Marketplace.Import
                     if (!_init)
                     {
                         _IniSettings = new INIReaderHelper();
-                        string fileScript = Path.Combine(RootFolder, "Scripts.ini");
+                        _RootFolder = Directory.GetCurrentDirectory();
+
+                        if (_RootFolder == Path.GetDirectoryName(typeof(AppSetting).Assembly.Location))
+                        {
+                            string rootFilderPublish = Path.GetFullPath(Path.Combine(typeof(AppSetting).Assembly.Location, @"..\..\..\..\..\..\Publish\"));
+                            if (Directory.Exists(rootFilderPublish))
+                                _RootFolder = rootFilderPublish;
+                        }
+
+                        string fileScript = Path.Combine(_RootFolder, "Scripts.ini");
                         _IniSettings.OpenFile(fileScript);
 
                         _FileFolderReport = GetSettingPath("FolderReportFiles", "ReportFiles");
                         _LogsFolder = GetSettingPath("LogsFolder", "Logs");
                         _CommonScript = GetSettingPath("CommonScript");
-                        string cryptDataFile = GetSettingPath("FilePassword", "cryptData.csv");
+                        string cryptDataFile = GetSettingPath("FilePassword", "passwordData.csv");
                         _PasswordManager = new PasswordManager(cryptDataFile);
 
                         List<INISection> sections = _IniSettings.GetSections("Script");
@@ -112,7 +129,7 @@ namespace Marketplace.Import
         {
             _IniSettings.TryGetValue(key, out string path);
             if (string.IsNullOrEmpty(path) && !string.IsNullOrEmpty(name))
-                path = Path.Combine(RootFolder, name);
+                path = Path.Combine(_RootFolder, name);
             else
                 path = GetFullPath(path);
             return path;
@@ -167,7 +184,7 @@ namespace Marketplace.Import
         {
             string result = path ?? string.Empty;
             if (!result.Contains(':'))
-                result = Path.Combine(RootFolder, result);
+                result = Path.Combine(_RootFolder, result);
             return result;
         }
     }

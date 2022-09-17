@@ -9,7 +9,7 @@ namespace Marketplace.Import
 {
     public class PasswordManager
     {
-        private bool _init;
+        private volatile bool _init;
         private string _fileName;
         private Dictionary<string, string> _values;
         public PasswordManager(string fileName)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -46,7 +47,7 @@ namespace Marketplace.Import
             }
             catch (Exception ex)
             {
-                throw new Exception($"Ошибка при получении параметра '{key}' из значения '{value}'");
+                throw new Exception($"Ошибка при получении параметра '{key}' из значения '{value}'", ex);
             }
         }
 
@@ -194,7 +195,7 @@ namespace Marketplace.Import
         }
 
         private static byte[] GetKey()
-        {
+        { 
             string keyStr = $"{typeof(StringExtensions).FullName} {Environment.MachineName} {Environment.UserName}";
             return Encoding.Unicode.GetBytes(keyStr).ComputeHashSHA256().Take(8).ToArray();
         }

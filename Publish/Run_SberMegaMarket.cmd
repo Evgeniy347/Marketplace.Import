@@ -1,1 +1,1 @@
-"net452\CefSharp.MinimalExample.WinForms.exe" SberMegaMarket
+"..\Marketplace.Import\bin\AnyCPU\Debug\net452\Marketplace.Import.exe" SberMegaMarket

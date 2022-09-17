@@ -44,6 +44,7 @@
             this.disabledToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scriptsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripTextBox1 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripContainer.ContentPanel.SuspendLayout();
             this.toolStripContainer.TopToolStripPanel.SuspendLayout();
             this.toolStripContainer.SuspendLayout();
@@ -150,7 +151,8 @@
             // 
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
-            this.scriptsToolStripMenuItem});
+            this.scriptsToolStripMenuItem,
+            this.toolStripTextBox1});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(730, 24);
@@ -171,28 +173,28 @@
             // showDevToolsToolStripMenuItem
             // 
             this.showDevToolsToolStripMenuItem.Name = "showDevToolsToolStripMenuItem";
-            this.showDevToolsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.showDevToolsToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.showDevToolsToolStripMenuItem.Text = "Show DevTools";
             this.showDevToolsToolStripMenuItem.Click += new System.EventHandler(this.ShowDevToolsMenuItemClick);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitMenuItemClick);
             // 
             // masterToolStripMenuItem
             // 
             this.masterToolStripMenuItem.Name = "masterToolStripMenuItem";
-            this.masterToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.masterToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.masterToolStripMenuItem.Text = "MasterKey";
             this.masterToolStripMenuItem.Click += new System.EventHandler(this.masterToolStripMenuItem_Click);
             // 
             // disabledToolStripMenuItem
             // 
             this.disabledToolStripMenuItem.Name = "disabledToolStripMenuItem";
-            this.disabledToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.disabledToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.disabledToolStripMenuItem.Text = "Disabled";
             this.disabledToolStripMenuItem.Click += new System.EventHandler(this.disabledToolStripMenuItem_Click);
             // 
@@ -208,9 +210,14 @@
             // stopToolStripMenuItem
             // 
             this.stopToolStripMenuItem.Name = "stopToolStripMenuItem";
-            this.stopToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.stopToolStripMenuItem.Size = new System.Drawing.Size(98, 22);
             this.stopToolStripMenuItem.Text = "Stop";
             this.stopToolStripMenuItem.Click += new System.EventHandler(this.stopToolStripMenuItem_Click);
+            // 
+            // toolStripTextBox1
+            // 
+            this.toolStripTextBox1.Name = "toolStripTextBox1";
+            this.toolStripTextBox1.Size = new System.Drawing.Size(12, 20);
             // 
             // BrowserForm
             // 
@@ -255,5 +262,6 @@
         private System.Windows.Forms.ToolStripMenuItem masterToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem disabledToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem stopToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem toolStripTextBox1;
     }
 }

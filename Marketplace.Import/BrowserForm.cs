@@ -40,7 +40,7 @@ namespace Marketplace.Import
             string logFileName = GetFileLogName();
             _fileWriter = new FileWriter(logFileName);
 
-            browser.Enabled = string.IsNullOrEmpty(AppSetting.RunScriptName); 
+            browser.Enabled = string.IsNullOrEmpty(AppSetting.RunScriptName);
             disabledToolStripMenuItem.Checked = !browser.Enabled;
 
             _scriptHandler = new ScriptHandler(browser);
@@ -74,7 +74,10 @@ namespace Marketplace.Import
             DisplayOutput(string.Format("{0}, {1}", version, environment));
 
             if (!string.IsNullOrEmpty(AppSetting.RunScriptName))
+            {
+                _scriptHandler.WatchDogEnable = true;
                 _scriptHandler.RunAsynk(AppSetting.RunScriptName);
+            }
 
             InitTabScript();
         }
@@ -119,14 +122,19 @@ namespace Marketplace.Import
             string line = $"Line: {args.Line}, Source: {args.Source}, Message: {args.Message}";
             DisplayOutput(line);
 
-            if (!string.IsNullOrEmpty(args.Message) && args.Message.StartsWith("Application:Exit"))
-                Application.Exit();
-
-            if (args.Message.StartsWith("MPS_Redirect"))
+            if (!string.IsNullOrEmpty(args.Message))
             {
-                int firslSplit = args.Message.IndexOf('=');
-                string url = args.Message.Remove(0, firslSplit + 1);
-                browser.LoadUrlAsync(url);
+                if (args.Message.StartsWith("Application:Exit"))
+                {
+                    browser.CloseDevTools();
+                    Application.Exit();
+                }
+                if (args.Message.StartsWith("MPS_Redirect"))
+                {
+                    int firslSplit = args.Message.IndexOf('=');
+                    string url = args.Message.Remove(0, firslSplit + 1);
+                    browser.LoadUrlAsync(url);
+                }
             }
         }
 
@@ -201,6 +209,7 @@ namespace Marketplace.Import
 
         private void ExitMenuItemClick(object sender, EventArgs e)
         {
+            browser.CloseDevTools();
             browser.Dispose();
             Cef.Shutdown();
             Close();
@@ -240,7 +249,7 @@ namespace Marketplace.Import
         }
 
         private void ShowDevToolsMenuItemClick(object sender, EventArgs e)
-        {
+        { 
             browser.ShowDevTools();
         }
 

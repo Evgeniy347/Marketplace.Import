@@ -218,27 +218,6 @@ function MPS_GetSesionID() {
     }
 }
 
-function MPS_CreateRestBuilder() {
-    var request = new XMLHttpRequest();
-
-    request.SendPost = function (url, json, callback, arg) {
-        this.open("POST", url, true);
-        this.responseType = "json";
-        this.setRequestHeader("Content-type", "application/json;charset=UTF-8");
-        this.mps_callback = callback;
-        this.mps_callback_arg = arg;
-        this.addEventListener("readystatechange", () => {
-
-            if (request.readyState === 4 && request.status === 200) {
-                if (request.mps_callback)
-                    request.mps_callback(request.response, request.mps_callback_arg);
-            }
-        });
-        this.send(JSON.stringify(json));
-    }
-    return request;
-}
-
 function MPS_GetOrder(orders, id) {
 
     for (var i = 0; i < orders.length; i++) {
@@ -247,14 +226,7 @@ function MPS_GetOrder(orders, id) {
             return order;
     }
 }
-
-function MPS_SaveContext() {
-    if (window.MPS_Context) {
-        var value = "MPS_Context = " + JSON.stringify(window.MPS_Context);
-        console.log(value);
-    }
-}
-
+ 
 function MPS_Authorization() {
     var login = "aselivanova@mokeev.ru";
     var password = "{Password:aselivanova@mokeev.ru}";
@@ -284,50 +256,5 @@ function MPS_Authorization() {
     MPS_SaveContext();
     setTimeout(function () { buttonOK.click() }, 500);
 }
-
-
-function MPS_GetElementFilter(options) {
-    return MPS_GetElementsFilter(options)[0];
-}
-
-function MPS_GetElementsFilter(options) {
-    //var options = {
-    //    selector: "div",
-    //    container: null,
-    //    classNameContaince: null,
-    //    filter: function () { return true; },
-    //    childOptions: {},
-    //};
-
-    var container = (options.container ? options.container : document);
-    var elements = Array.from(container.querySelectorAll(options.selector));
-
-    if (options.classNameContaince)
-        elements = elements.filter(function (x) { return x.className.indexOf(options.classNameContaince) != -1; });
-
-    if (options.innerTextContaince)
-        elements = elements.filter(function (x) { return x.innerText.indexOf(options.innerTextContaince) != -1; });
-
-    if (options.filter)
-        elements = elements.filter(options.filter);
-
-    if (options.childOptions) {
-
-        var result = [];
-        for (var i = 0; i < elements.length; i++) {
-
-            options.childOptions.container = elements[i];
-            var resultChild = MPS_GetElementsFilter(options.childOptions);
-            for (var j = 0; j < resultChild.length; j++) {
-                result.push(resultChild[j]);
-            }
-        }
-
-        return result;
-    }
-    else {
-        return elements;
-    }
-}
-
+ 
 MPS_Init();

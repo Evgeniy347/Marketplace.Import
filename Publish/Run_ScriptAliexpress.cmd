@@ -1,1 +1,1 @@
-"net452\CefSharp.MinimalExample.WinForms.exe" Aliexpress
+"..\Marketplace.Import\bin\AnyCPU\Debug\net452\Marketplace.Import.exe" Aliexpress

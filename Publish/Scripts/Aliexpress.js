@@ -1,6 +1,5 @@
 ﻿
-function MPS_Init() {
-    debugger;
+function MPS_Init() { 
 
     if (!window.MPS_Context)
         return;
@@ -13,7 +12,7 @@ function MPS_Init() {
     }
     else if (location.hostname == "login.aliexpress.com") {
         //Проходим авторизацию 
-        setTimeout(MPS_Authorization, 500);
+        setTimeout(MPS_Authorization, 1000);
     } else if (location.hostname == "aliexpress.ru") {
         //Если это начало авторизации то редиректим на страницу входа
         if (window.MPS_Context.StartAuthorization) {
@@ -132,14 +131,7 @@ function MPS_GetOrder(orders, id) {
             return order;
     }
 }
-
-function MPS_SaveContext() {
-    if (window.MPS_Context) {
-        var value = "MPS_Context = " + JSON.stringify(window.MPS_Context);
-        console.log(value);
-    }
-}
-
+ 
 function MPS_Authorization() {
 
     var login = "ksemenova@mokeev.ru";
@@ -190,27 +182,6 @@ function MPS_Authorization() {
     MPS_Context.ClickAutorize = true;
     MPS_SaveContext();
     buttonOK.click();
-}
-
-function MPS_CreateRestBuilder() {
-    var request = new XMLHttpRequest();
-
-    request.SendPost = function (url, json, callback, arg) {
-        this.open("POST", url, true);
-        this.responseType = "json";
-        this.setRequestHeader("Content-type", "application/json;charset=UTF-8");
-        this.mps_callback = callback;
-        this.mps_callback_arg = arg;
-        this.addEventListener("readystatechange", () => {
-
-            if (request.readyState === 4 && request.status === 200) {
-                if (request.mps_callback)
-                    request.mps_callback(request.response, request.mps_callback_arg);
-            }
-        });
-        this.send(JSON.stringify(json));
-    }
-    return request;
-}
+} 
 
 MPS_Init();

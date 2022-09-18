@@ -19,8 +19,22 @@ namespace Marketplace.Import.Controls
             //If you are planning on using a similar function in your own code then please be sure to
             //have a quick read over https://stackoverflow.com/questions/1874728/avoid-calling-invoke-when-the-control-is-disposed
             //No action
-            if (control.Disposing || control.IsDisposed || !control.IsHandleCreated)
+            if (control.Disposing || control.IsDisposed)
             {
+                return;
+            }
+
+            if (!control.IsHandleCreated)
+            {
+                bool invoked = false;
+                EventHandler eh = (o, e) =>
+                {
+                    if (!invoked)
+                        action();
+                    invoked = true;
+                };
+
+                control.HandleCreated += eh;
                 return;
             }
 

@@ -2,7 +2,7 @@
 function Authorization() {
       
     var login = "markinevgeniy2010@mail.ru";
-    var password = "de656730f5";
+    var password = "s";
 
     var loginInput = document.querySelector("#fm-login-id");
     var pwdInput = document.querySelector("#fm-login-password");

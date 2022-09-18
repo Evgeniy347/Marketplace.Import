@@ -130,6 +130,7 @@
     </Compile>
     <Compile Include="Controls\ControlExtensions.cs" />
     <Compile Include="DownloadHandler.cs" />
+    <Compile Include="Exceptions\MessageBoxExeption.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\URLExtensions.cs" />
     <Compile Include="Helpers\DictionaryParceValueExtensions.cs" />

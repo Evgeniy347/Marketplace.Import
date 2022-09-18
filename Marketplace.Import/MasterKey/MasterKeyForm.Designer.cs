@@ -30,6 +30,7 @@
         {
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.button_Save = new System.Windows.Forms.Button();
+            this.CredentialID = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Login = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Password = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
@@ -39,6 +40,7 @@
             // 
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.CredentialID,
             this.Login,
             this.Password});
             this.dataGridView1.Location = new System.Drawing.Point(12, 12);
@@ -56,11 +58,17 @@
             this.button_Save.UseVisualStyleBackColor = true;
             this.button_Save.Click += new System.EventHandler(this.button_Save_Click);
             // 
+            // CredentialID
+            // 
+            this.CredentialID.HeaderText = "CredentialID";
+            this.CredentialID.Name = "CredentialID";
+            this.CredentialID.Width = 200;
+            // 
             // Login
             // 
             this.Login.HeaderText = "Login";
             this.Login.Name = "Login";
-            this.Login.Width = 300;
+            this.Login.Width = 200;
             // 
             // Password
             // 
@@ -87,6 +95,7 @@
 
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Button button_Save;
+        private System.Windows.Forms.DataGridViewTextBoxColumn CredentialID;
         private System.Windows.Forms.DataGridViewTextBoxColumn Login;
         private System.Windows.Forms.DataGridViewTextBoxColumn Password;
     }

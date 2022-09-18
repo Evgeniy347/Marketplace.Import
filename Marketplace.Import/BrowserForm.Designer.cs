@@ -1,4 +1,7 @@
-﻿namespace Marketplace.Import
+﻿using System;
+using System.Windows.Forms;
+
+namespace Marketplace.Import
 {
     partial class BrowserForm
     {
@@ -45,6 +48,7 @@
             this.scriptsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripTextBox1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
             this.toolStripContainer.ContentPanel.SuspendLayout();
             this.toolStripContainer.TopToolStripPanel.SuspendLayout();
             this.toolStripContainer.SuspendLayout();
@@ -59,14 +63,14 @@
             // 
             this.toolStripContainer.ContentPanel.Controls.Add(this.statusLabel);
             this.toolStripContainer.ContentPanel.Controls.Add(this.outputLabel);
-            this.toolStripContainer.ContentPanel.Size = new System.Drawing.Size(730, 441);
+            this.toolStripContainer.ContentPanel.Size = new System.Drawing.Size(792, 441);
             this.toolStripContainer.ContentPanel.Load += new System.EventHandler(this.toolStripContainer_ContentPanel_Load);
             this.toolStripContainer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.toolStripContainer.LeftToolStripPanelVisible = false;
             this.toolStripContainer.Location = new System.Drawing.Point(0, 24);
             this.toolStripContainer.Name = "toolStripContainer";
             this.toolStripContainer.RightToolStripPanelVisible = false;
-            this.toolStripContainer.Size = new System.Drawing.Size(730, 466);
+            this.toolStripContainer.Size = new System.Drawing.Size(792, 466);
             this.toolStripContainer.TabIndex = 0;
             this.toolStripContainer.Text = "toolStripContainer1";
             // 
@@ -100,11 +104,12 @@
             this.backButton,
             this.forwardButton,
             this.urlTextBox,
-            this.goButton});
+            this.goButton,
+            this.toolStripLabel1});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Padding = new System.Windows.Forms.Padding(0);
-            this.toolStrip1.Size = new System.Drawing.Size(730, 25);
+            this.toolStrip1.Size = new System.Drawing.Size(792, 25);
             this.toolStrip1.Stretch = true;
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Layout += new System.Windows.Forms.LayoutEventHandler(this.HandleToolStripLayout);
@@ -155,7 +160,7 @@
             this.toolStripTextBox1});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(730, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(792, 24);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -219,11 +224,17 @@
             this.toolStripTextBox1.Name = "toolStripTextBox1";
             this.toolStripTextBox1.Size = new System.Drawing.Size(12, 20);
             // 
+            // toolStripLabel1
+            // 
+            this.toolStripLabel1.Name = "toolStripLabel1";
+            this.toolStripLabel1.Size = new System.Drawing.Size(69, 22);
+            this.toolStripLabel1.Text = "Script:None";
+            // 
             // BrowserForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(730, 490);
+            this.ClientSize = new System.Drawing.Size(792, 490);
             this.Controls.Add(this.toolStripContainer);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
@@ -243,7 +254,7 @@
             this.PerformLayout();
 
         }
-
+         
         #endregion
 
         private System.Windows.Forms.ToolStripContainer toolStripContainer;
@@ -263,5 +274,6 @@
         private System.Windows.Forms.ToolStripMenuItem disabledToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem stopToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripTextBox1;
+        private ToolStripLabel toolStripLabel1;
     }
 }

@@ -38,12 +38,7 @@ namespace Marketplace.Import
             {
                 using (callback)
                 {
-                    string fullPath = _scriptHandler.CurrentScript.ReportFile;
-                    if (string.IsNullOrEmpty(fullPath))
-                    {
-                        Uri uri = new Uri(downloadItem.OriginalUrl);
-                        fullPath = Path.Combine(Path.Combine(AppSetting.FileFolderReport, uri.Host), "report.xlsx");
-                    }
+                    string fullPath = GetPath(downloadItem);
 
                     string pathFiles = Path.GetDirectoryName(fullPath);
 
@@ -56,10 +51,11 @@ namespace Marketplace.Import
                         File.Delete(downloadItem.FullPath);
 
                     callback.Continue(fullPath, false);
+                    
+                    _scriptHandler.Stop();
 
                     if (AppSetting.RunScript)
                     {
-
                         Thread thread = new Thread(() =>
                         {
                             while (!callback.IsDisposed)
@@ -73,6 +69,23 @@ namespace Marketplace.Import
                     }
                 }
             }
+        }
+
+        private string GetPath(DownloadItem downloadItem)
+        {
+            string fullPath = _scriptHandler.CurrentScript.ReportFile;
+            if (string.IsNullOrEmpty(fullPath))
+            {
+                Uri uri = new Uri(downloadItem.OriginalUrl);
+                fullPath = Path.Combine(Path.Combine(AppSetting.FileFolderReport, uri.Host), "report.xlsx");
+            }
+            else
+            {
+                string credentialID = _scriptHandler.GetCredential(); 
+                fullPath = fullPath.Replace("{CredentialID}", credentialID);
+            }
+
+            return fullPath;
         }
 
         public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem, IDownloadItemCallback callback)

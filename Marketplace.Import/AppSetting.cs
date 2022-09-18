@@ -89,6 +89,8 @@ namespace Marketplace.Import
 
         public static bool RunScript => !string.IsNullOrEmpty(RunScriptName);
 
+        public static string CurrentCredential { get; internal set; }
+
         private static void EnsureSettingsLoaded()
         {
             if (!_init)
@@ -98,22 +100,14 @@ namespace Marketplace.Import
                     if (!_init)
                     {
                         _IniSettings = new INIReaderHelper();
-                        _RootFolder = Directory.GetCurrentDirectory();
-
-                        if (_RootFolder == Path.GetDirectoryName(typeof(AppSetting).Assembly.Location))
-                        {
-                            string rootFilderPublish = Path.GetFullPath(Path.Combine(typeof(AppSetting).Assembly.Location, @"..\..\..\..\..\..\Publish\"));
-                            if (Directory.Exists(rootFilderPublish))
-                                _RootFolder = rootFilderPublish;
-                        }
-
-                        string fileScript = Path.Combine(_RootFolder, "Scripts.ini");
+                        string fileScript = FindScriptFile();
+                        _RootFolder = Path.GetDirectoryName(fileScript);
                         _IniSettings.OpenFile(fileScript);
 
                         _FileFolderReport = GetSettingPath("FolderReportFiles", "ReportFiles");
                         _LogsFolder = GetSettingPath("LogsFolder", "Logs");
                         _CommonScript = GetSettingPath("CommonScript");
-                        string cryptDataFile = GetSettingPath("FilePassword", "passwordData.csv");
+                        string cryptDataFile = GetSettingPath("FilePassword", "passwordStorage.csv");
                         _PasswordManager = new PasswordManager(cryptDataFile);
 
                         List<INISection> sections = _IniSettings.GetSections("Script");
@@ -123,6 +117,33 @@ namespace Marketplace.Import
                     }
                 }
             }
+        }
+
+        private static string FindScriptFile()
+        {
+            string sourcePath = Path.GetDirectoryName(typeof(AppSetting).Assembly.Location);
+            string tempPath = Path.Combine(sourcePath, "Scripts.ini");
+
+            bool isPublish = false;
+            while (!File.Exists(tempPath))
+            {
+                if (isPublish)
+                {
+                    tempPath = Path.Combine(sourcePath, "Publish", "Scripts.ini");
+                    isPublish = false;
+                }
+                else
+                {
+                    tempPath = Path.Combine(sourcePath, "Scripts.ini");
+                    sourcePath = Path.GetDirectoryName(sourcePath);
+                    isPublish = true;
+                }
+            }
+
+            if (!File.Exists(tempPath))
+                throw new Exception("Не удалось обнаружить файл скрипта");
+
+            return tempPath;
         }
 
         private static string GetSettingPath(string key, string name = null)
@@ -143,6 +164,7 @@ namespace Marketplace.Import
                 Name = section["Name"],
                 StartUrl = section["StartUrl"],
                 ReportFile = section["ReportFile"],
+                DefaultCredential = section["DefaultCredential"],
             };
 
             if (string.IsNullOrEmpty(scriptSetting.FileScript))

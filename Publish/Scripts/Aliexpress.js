@@ -5,35 +5,26 @@ function MPS_Init() {
         return;
 
     if (location.href.startsWith("https://seller.aliexpress.ru/login")) {
-        //если открывается страница авторизации то редиректимся на "login.aliexpress.com", так как там проще авторизаваться
-        window.MPS_Context.StartAuthorization = true;
         MPS_SaveContext();
-        location.href = "https://aliexpress.ru";
+        setTimeout(function () { location.href = "https://auth-seller.aliexpress.ru/api/v1/auth"; }, 1000);
     }
-    else if (location.hostname == "login.aliexpress.com") {
-        //Проходим авторизацию 
+    else if (location.href.startsWith("https://login.aliexpress.ru")) {
+        MPS_SaveContext();
         setTimeout(MPS_Authorization, 1000);
-    } else if (location.hostname == "aliexpress.ru") {
-        //Если это начало авторизации то редиректим на страницу входа
-        if (window.MPS_Context.StartAuthorization) {
-            window.MPS_Context.StartAuthorization = false;
-            MPS_SaveContext();
-            setTimeout(function () { location.href = "https://login.aliexpress.com"; }, 1000);
-        }
-        else {
-            window.MPS_Context.EndAuthorization = true;
-            MPS_SaveContext();
+    }
+    else if (location.href.startsWith("https://auth-seller.aliexpress.ru/api/v1/auth")) {
+        MPS_SaveContext();
+        setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
+    }
+    else if (location.href.startsWith("https://seller.aliexpress.ru/orders/orders")) {
 
-            //Если мы тут то значит прошли авторизацию, редиректим на страницу для загрузки файла   
-            setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
-        }
-    } else if (location.href.startsWith("https://seller.aliexpress.ru/orders/orders")) {
-        //открыть всплывающее меню действия 
-        if (!window.MPS_Context.StartCreateExport) {
-            window.MPS_Context.StartCreateExport = true;
-            MPS_SaveContext();
-            MPS_CreateExport();
-        }
+        setTimeout(function () { 
+            if (!window.MPS_Context.StartCreateExport) {
+                window.MPS_Context.StartCreateExport = true;
+                MPS_SaveContext();
+                MPS_CreateExport();
+            }
+        }, 1000); 
     }
     else {
         //если ничего из вышеперечисленного то вызывает повтроно, возможно будет редирект
@@ -131,48 +122,25 @@ function MPS_GetOrder(orders, id) {
             return order;
     }
 }
- 
+
+
 function MPS_Authorization() {
+     
+    var login = "{Login}";
+    var password = "{Password}";
 
-    var login = "ksemenova@mokeev.ru";
-    var password = "{Password:ksemenova@mokeev.ru}";
-
-    var loginInput = document.querySelector("#fm-login-id");
-    var pwdInput = document.querySelector("#fm-login-password");
+    var loginInput = document.querySelector("#email");
+    var pwdInput = document.querySelector("#password");
 
     if (!loginInput || !pwdInput) {
-
-        MPS_Context.FindLoginAndPassorkInput = false;
-        var checkVerifyLog = document.querySelector("#baxia-dialog-content");
-        if (checkVerifyLog) {
-            MPS_Context.NeedCache = true;
-            MPS_SaveContext();
-            console.error("find baxia-dialog-content");
-            console.error("Требуется ввод капчи, необходимо авторизоваться на сайте вручную.");
-            //console.error("Application:Exit");
-            return;
-        };
-
-        var buttonOK = document.querySelector(".comet-btn");
-        if (buttonOK) {
-            if (!buttonOK.AuthorizationClick) {
-                MPS_Context.AuthorizationDoubleClick = true;
-                MPS_SaveContext();
-                buttonOK.click();
-            }
-
-            buttonOK.AuthorizationClick = true;
-            setTimeout(MPS_Authorization, 100);
-            return;
-        }
-
-        setTimeout(MPS_Authorization, 100);
+        setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
         return;
     }
 
     MPS_Context.FindLoginAndPassorkInput = true;
     MPS_SaveContext();
-    var buttonOK = document.querySelector(".login-submit");
+
+    var buttonOK = document.querySelector("button[type=submit]");
 
     loginInput.focus();
     document.execCommand('insertText', false, login);
@@ -182,6 +150,6 @@ function MPS_Authorization() {
     MPS_Context.ClickAutorize = true;
     MPS_SaveContext();
     buttonOK.click();
-} 
+}
 
 MPS_Init();

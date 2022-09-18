@@ -43,7 +43,7 @@ namespace Marketplace.Import
             browser.Enabled = string.IsNullOrEmpty(AppSetting.RunScriptName);
             disabledToolStripMenuItem.Checked = !browser.Enabled;
 
-            _scriptHandler = new ScriptHandler(browser);
+            _scriptHandler = new ScriptHandler(browser, this.toolStripLabel1);
             toolStripContainer.ContentPanel.Controls.Add(browser);
 
             browser.IsBrowserInitializedChanged += OnIsBrowserInitializedChanged;
@@ -207,11 +207,19 @@ namespace Marketplace.Import
             urlTextBox.Width = Math.Max(0, width - urlTextBox.Margin.Horizontal - 18);
         }
 
+        private void onFormClosing(object sender, FormClosingEventArgs e)
+        {
+            ExitMenuItemClick(sender, e);
+        }
+
         private void ExitMenuItemClick(object sender, EventArgs e)
         {
+            if (browser.IsDisposed)
+                return;
+
             browser.CloseDevTools();
             browser.Dispose();
-            Cef.Shutdown();
+            Cef.Shutdown(); 
             Close();
         }
 
@@ -249,7 +257,7 @@ namespace Marketplace.Import
         }
 
         private void ShowDevToolsMenuItemClick(object sender, EventArgs e)
-        { 
+        {
             browser.ShowDevTools();
         }
 
@@ -306,6 +314,11 @@ namespace Marketplace.Import
         private void stopToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _scriptHandler.Stop();
+        }
+
+        private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

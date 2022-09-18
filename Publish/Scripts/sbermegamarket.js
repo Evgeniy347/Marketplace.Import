@@ -227,9 +227,9 @@ function MPS_GetOrder(orders, id) {
     }
 }
  
-function MPS_Authorization() {
-    var login = "aselivanova@mokeev.ru";
-    var password = "{Password:aselivanova@mokeev.ru}";
+function MPS_Authorization() { 
+    var login = "{Login}";
+    var password = "{Password}";
 
     var loginInput = document.querySelector("input[name=login]");
     var pwdInput = document.querySelector("input[name=password]");

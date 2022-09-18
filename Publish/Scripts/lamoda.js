@@ -1,21 +1,25 @@
 
 function MPS_Init() {
+    debugger;
 
     if (!window.MPS_Context)
         return;
 
-    if (!window.MPS_Context.StartAuthorization) {
-        window.MPS_Context.StartAuthorization = true;
-        MPS_SaveContext();
-        MPS_GetToken();
-    }
+    setTimeout(function () { 
+        if (!window.MPS_Context.StartAuthorizationLamoda) {
+            window.MPS_Context.StartAuthorizationLamoda = true;
+            MPS_SaveContext();
+            MPS_GetToken();
+        } 
+    }, 1000);
 }
 
 function MPS_GetToken() {
 
-    var login = "alisa-kot96@mail.ru";
+    var login = "{Login}";
+    var password = "{Password}";
+
     var url = "https://partner.lamoda.ru/api/token";
-    var password = "{Password:alisa-kot96@mail.ru}";
     var request = {
         "grant_type": "password", "username": login, "password": password
     }
@@ -26,6 +30,7 @@ function MPS_GetToken() {
 
 
 function MPS_GetTokenCallBack(responce) {
+    MPS_SaveContext();
 
     var url = "https://partner.lamoda.ru/api/v1/exports";
     var endDate = new Date();
@@ -54,6 +59,7 @@ function MPS_DateLamodaFormat(d, end) {
 }
 
 function MPS_CreateExportCallback(responce, access_token) {
+    MPS_SaveContext();
 
     var url = "https://partner.lamoda.ru/api/v1/exports/" + responce.id + "/download";
 
@@ -65,6 +71,7 @@ function MPS_CreateExportCallback(responce, access_token) {
 }
 
 function MPS_DownloadExport(params) {
+    MPS_SaveContext();
 
     var builder = MPS_CreateGetBuilder();
 
@@ -74,6 +81,7 @@ function MPS_DownloadExport(params) {
 }
 
 function MPS_DownloadExportCallback(responce, params) {
+    MPS_SaveContext();
 
     if (!responce || responce.byteLength == 0) {
         setTimeout(MPS_DownloadExport, 1000, params);

@@ -1,4 +1,5 @@
-﻿using Marketplace.Import.Helpers;
+﻿using Marketplace.Import.Exceptions;
+using Marketplace.Import.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,23 +23,24 @@ namespace Marketplace.Import.MasterKey
             ResizeFormHelper.Instance.AddResizeControl(dataGridView1);
 
 
-            DataGridViewRow[] rows = AppSetting.PasswordManager.AllLogin.Select(CreateRow).ToArray();
+            DataGridViewRow[] rows = AppSetting.PasswordManager.Credentials.Select(CreateRow).ToArray();
             this.dataGridView1.Rows.AddRange(rows);
         }
 
         public class DataGridViewRowLogin : DataGridViewRow
         {
-            public string Login { get; set; }
+            public CredentialEntry Credential { get; set; }
         }
 
-        private DataGridViewRow CreateRow(string login)
+        private DataGridViewRow CreateRow(CredentialEntry credential)
         {
             DataGridViewRowLogin row = new DataGridViewRowLogin()
             {
-                Login = login
+                Credential = credential
             };
-             
-            row.Cells.Add(new DataGridViewTextBoxCell() { Value = login });
+
+            row.Cells.Add(new DataGridViewTextBoxCell() { Value = credential.ID });
+            row.Cells.Add(new DataGridViewTextBoxCell() { Value = credential.Login });
             row.Cells.Add(new DataGridViewTextBoxCell() { Value = _hideChangePasswor });
 
             return row;
@@ -46,47 +48,46 @@ namespace Marketplace.Import.MasterKey
 
         private void button_Save_Click(object sender, EventArgs e)
         {
-            bool change = false;
-            List<string> removeLogins = AppSetting.PasswordManager.AllLogin.ToList();
+            List<CredentialEntry> removeCredentials = AppSetting.PasswordManager.Credentials.ToList();
 
             foreach (DataGridViewRow row in this.dataGridView1.Rows)
             {
-                string oldLogin = string.Empty;
+                CredentialEntry credential;
                 if (row is DataGridViewRowLogin rowLogin)
-                    oldLogin = rowLogin.Login;
-
-                string login = row.Cells[0].Value?.ToString() ?? string.Empty;
-                string password = row.Cells[1].Value?.ToString() ?? string.Empty;
-
-                if (!string.IsNullOrEmpty(login) && !string.IsNullOrEmpty(password))
+                    credential = rowLogin.Credential;
+                else
                 {
-                    if (login != oldLogin && !string.IsNullOrEmpty(oldLogin))
-                    {
-                        AppSetting.PasswordManager.ChangeLogin(oldLogin, login);
-                        change = true;
-                    }
-
-                    if (password != _hideChangePasswor || string.IsNullOrEmpty(oldLogin))
-                    {
-                        AppSetting.PasswordManager[login] = password;
-                        change = true;
-                    }
-
-                    removeLogins.Remove(login);
+                    credential = AppSetting.PasswordManager.CreateCredential();
+                    removeCredentials.Add(credential);
                 }
+
+                int i = 0;
+                credential.ID = row.Cells[i++].Value?.ToString() ?? string.Empty;
+                credential.Login = row.Cells[i++].Value?.ToString() ?? string.Empty;
+                string password = row.Cells[i++].Value?.ToString() ?? string.Empty;
+
+                if (password != _hideChangePasswor)
+                    credential.SetPassword(password);
+
+                if (!credential.IsEmpty)
+                    removeCredentials.Remove(credential);
             }
 
-            if (removeLogins.Count > 0)
+            if (removeCredentials.Count > 0)
             {
-                foreach (string login in removeLogins)
-                    AppSetting.PasswordManager.RemovePassword(login);
-                change = true;
+                foreach (CredentialEntry credential in removeCredentials)
+                    AppSetting.PasswordManager.RemoveCredential(credential);
             }
 
-            if (change)
+            try
+            {
                 AppSetting.PasswordManager.SaveFile();
-
-            this.Close();
+                this.Close();
+            }
+            catch (MessageBoxExeption ex)
+            {
+                ex.ShowMessageBox();
+            }
         }
 
         private void MasterKeyForm_Load(object sender, EventArgs e)

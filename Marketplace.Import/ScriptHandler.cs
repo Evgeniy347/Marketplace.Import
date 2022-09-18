@@ -1,5 +1,7 @@
 ﻿using CefSharp;
 using CefSharp.WinForms;
+using Marketplace.Import.Controls;
+using Marketplace.Import.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,7 +22,9 @@ namespace Marketplace.Import
         private WatchDog _WatchDog;
         public bool WatchDogEnable { get; set; }
         private int _countAttempts;
-        public ScriptHandler(ChromiumWebBrowser browser)
+        private ToolStripLabel _statusLabel;
+
+        public ScriptHandler(ChromiumWebBrowser browser, ToolStripLabel statusLabel)
         {
             _browser = browser;
             //Событие изменения статуса рендера страницы
@@ -28,6 +32,7 @@ namespace Marketplace.Import
 
             //Событие console.log
             browser.ConsoleMessage += OnConsoleMessage;
+            _statusLabel = statusLabel;
         }
 
         public ScriptSetting CurrentScript => _currentScript;
@@ -47,6 +52,7 @@ namespace Marketplace.Import
                 else if (e.Message.StartsWith("FileReportUrl:"))
                 {
                     string url = e.Message.Replace("FileReportUrl:", "");
+                    _browser.InvokeOnUiThreadIfRequired(() => _statusLabel.Text = $"DownLoad ({_currentScript.Name})");
                     _WatchDog?.Dispose();
                     _browser.StartDownload(url);
                 }
@@ -84,12 +90,15 @@ namespace Marketplace.Import
             _WatchDog?.Dispose();
             _WatchDog = null;
             _jsonContextValue = $"{_jsonContextKey} = {{}}";
+            _browser.Invoke((Action)(() => _statusLabel.Text = $"Stop"));
         }
 
         public Task RunAsynk(string scriptName, bool repit = false)
         {
             _currentScript = AppSetting.Scripts.FirstOrDefault(x => x.Name.Equals(scriptName, StringComparison.OrdinalIgnoreCase)) ??
                 throw new Exception($"Не найден скрипт по имени '{scriptName}'");
+
+            _browser.InvokeOnUiThreadIfRequired(() => _statusLabel.Text = $"Run ({scriptName})");
 
             if (repit)
             {
@@ -138,6 +147,9 @@ namespace Marketplace.Import
         {
             try
             {
+                if (_currentScript == null)
+                    return Task.Run(() => { });
+
                 string valueStr = File.ReadAllText(_currentScript.FileScript);
                 valueStr = ReplasePasword(valueStr);
 
@@ -162,24 +174,38 @@ namespace Marketplace.Import
 
         private string ReplasePasword(string source)
         {
-            string passwordKey = "{Password:";
             string result = source;
-            int startIndex = result.IndexOf(passwordKey);
-
-            while (startIndex != -1)
+            if (source.Contains("{Login}") || source.Contains("{Password}"))
             {
-                int endIndex = result.IndexOf('}', startIndex + 1);
+                string credentialID = GetCredential();
 
-                string login = result.Substring(startIndex + passwordKey.Length, endIndex - startIndex - passwordKey.Length);
-                string password = AppSetting.PasswordManager.GetPassword(login) ?? string.Empty;
+                try
+                {
+                    CredentialEntry credential = AppSetting.PasswordManager.GetCredential(credentialID);
 
-                result = result.Remove(startIndex, endIndex - startIndex + 1);
-                result = result.Insert(startIndex, password);
-
-                startIndex = result.IndexOf(passwordKey, endIndex);
+                    result = result
+                        .Replace("{Login}", credential.Login)
+                        .Replace("{Password}", credential.GetPassword());
+                }
+                catch
+                {
+                    Stop();
+                    throw;
+                }
             }
-
             return result;
+        }
+
+        public string GetCredential()
+        {
+            string credentialID = AppSetting.CurrentCredential;
+            if (string.IsNullOrEmpty(credentialID))
+                credentialID = _currentScript.DefaultCredential;
+
+            if (string.IsNullOrEmpty(credentialID))
+                throw new MessageBoxExeption("Не задана УЗ для скрипта");
+
+            return credentialID;
         }
     }
 }

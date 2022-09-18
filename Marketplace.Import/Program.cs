@@ -18,8 +18,13 @@ namespace Marketplace.Import
 #if ANYCPU
             CefRuntime.SubscribeAnyCpuAssemblyResolver();
 #endif
-            if (args != null && args.Length > 0)
-                AppSetting.RunScriptName = args[0];
+            if (args != null)
+            {
+                if (args.Length > 0)
+                    AppSetting.RunScriptName = args[0];
+                if (args.Length > 1)
+                    AppSetting.CurrentCredential = args[1];
+            }
 
             // Programmatically enable DPI Aweness
             // Can also be done via app.manifest or app.config

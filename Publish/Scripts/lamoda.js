@@ -1,14 +1,16 @@
 
-function MPS_Init() {
-    debugger;
+function MPS_Init() { 
 
     if (!window.MPS_Context)
         return;
 
+    if (!window.MPS_Context.PushLog)
+        window.MPS_Context.PushLog = MPS_PushLog; 
+
     setTimeout(function () { 
         if (!window.MPS_Context.StartAuthorizationLamoda) {
             window.MPS_Context.StartAuthorizationLamoda = true;
-            MPS_SaveContext();
+            window.MPS_Context.PushLog("StartAuthorizationLamoda");
             MPS_GetToken();
         } 
     }, 1000);
@@ -29,8 +31,8 @@ function MPS_GetToken() {
 }
 
 
-function MPS_GetTokenCallBack(responce) {
-    MPS_SaveContext();
+function MPS_GetTokenCallBack(responce) { 
+    window.MPS_Context.PushLog("GetTokenCallBack");
 
     var url = "https://partner.lamoda.ru/api/v1/exports";
     var endDate = new Date();
@@ -58,8 +60,8 @@ function MPS_DateLamodaFormat(d, end) {
     return datestring;
 }
 
-function MPS_CreateExportCallback(responce, access_token) {
-    MPS_SaveContext();
+function MPS_CreateExportCallback(responce, access_token) { 
+    window.MPS_Context.PushLog("CreateExportCallback");
 
     var url = "https://partner.lamoda.ru/api/v1/exports/" + responce.id + "/download";
 
@@ -70,8 +72,8 @@ function MPS_CreateExportCallback(responce, access_token) {
     MPS_DownloadExport(params);
 }
 
-function MPS_DownloadExport(params) {
-    MPS_SaveContext();
+function MPS_DownloadExport(params) { 
+    window.MPS_Context.PushLog("DownloadExport");
 
     var builder = MPS_CreateGetBuilder();
 
@@ -80,8 +82,8 @@ function MPS_DownloadExport(params) {
     builder.SendPost(params.FileURL, MPS_DownloadExportCallback, params);
 }
 
-function MPS_DownloadExportCallback(responce, params) {
-    MPS_SaveContext();
+function MPS_DownloadExportCallback(responce, params) { 
+    window.MPS_Context.PushLog("DownloadExportCallback");
 
     if (!responce || responce.byteLength == 0) {
         setTimeout(MPS_DownloadExport, 1000, params);
@@ -123,6 +125,8 @@ function MPS_CreateGetBuilder() {
 }
 
 function MPS_DownloadData(data, filename, type) {
+    window.MPS_Context.PushLog("DownloadData");
+
     var file = new Blob([data], { type: type });
     if (window.navigator.msSaveOrOpenBlob) // IE10+
         window.navigator.msSaveOrOpenBlob(file, filename);

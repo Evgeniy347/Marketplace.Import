@@ -33,7 +33,7 @@ namespace Marketplace.Import.Helpers
                 Name = "FileWriter",
             };
             string folder = Path.GetDirectoryName(fileName);
-            
+
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
 
@@ -42,7 +42,7 @@ namespace Marketplace.Import.Helpers
 
         public void WriteLogAsynk(string item)
         {
-            _values.Add(item);
+            _values.Add($"Date:{DateTime.Now} {item}");
         }
 
 

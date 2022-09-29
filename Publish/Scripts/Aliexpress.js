@@ -4,16 +4,18 @@ function MPS_Init() {
     if (!window.MPS_Context)
         return;
 
-    if (location.href.startsWith("https://seller.aliexpress.ru/login")) {
-        MPS_SaveContext();
+    if (!window.MPS_Context.PushLog)
+        window.MPS_Context.PushLog = MPS_PushLog; 
+
+    if (location.href.startsWith("https://seller.aliexpress.ru/login")) { 
+        window.MPS_Context.PushLog("Redirect auth");
         setTimeout(function () { location.href = "https://auth-seller.aliexpress.ru/api/v1/auth"; }, 1000);
     }
-    else if (location.href.startsWith("https://login.aliexpress.ru")) {
-        MPS_SaveContext();
+    else if (location.href.startsWith("https://login.aliexpress.ru")) { 
         setTimeout(MPS_Authorization, 1000);
     }
     else if (location.href.startsWith("https://auth-seller.aliexpress.ru/api/v1/auth")) {
-        MPS_SaveContext();
+        window.MPS_Context.PushLog("Redirect orders");
         setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
     }
     else if (location.href.startsWith("https://seller.aliexpress.ru/orders/orders")) {
@@ -21,7 +23,7 @@ function MPS_Init() {
         setTimeout(function () { 
             if (!window.MPS_Context.StartCreateExport) {
                 window.MPS_Context.StartCreateExport = true;
-                MPS_SaveContext();
+                window.MPS_Context.PushLog("StartCreateExport"); 
                 MPS_CreateExport();
             }
         }, 1000); 
@@ -53,9 +55,8 @@ function MPS_CreateExport() {
 }
 
 function MPS_CreateExportCallBack(response, contextOperation) {
-
-    window.MPS_Context.ReqestCreateExportComplited = true;
-    MPS_SaveContext();
+     
+    window.MPS_Context.PushLog("ReqestCreateExportComplited"); 
 
     console.log(response.response);
     contextOperation.CreateExport.Response = response;
@@ -87,12 +88,8 @@ function MPS_CheckStatusExport(contextOperation) {
 function MPS_CheckStatusExportCallBack(response, contextOperation) {
     console.log("MPS_CheckStatusExport");
     console.log(response);
-
-    window.MPS_Context.MPS_CheckStatusExportCallBack = true;
-    if (!window.MPS_Context.MPS_CheckStatusExportCount)
-        window.MPS_Context.MPS_CheckStatusExportCount = 0;
-    window.MPS_Context.MPS_CheckStatusExportCount++;
-    MPS_SaveContext();
+     
+    window.MPS_Context.PushLog("MPS_CheckStatusExportCallBack"); 
 
     contextOperation.CheckStatus.Response = response;
 
@@ -107,9 +104,8 @@ function MPS_CheckStatusExportCallBack(response, contextOperation) {
         //если сервер генерит отчет то проверяем его каждую секунду
         setTimeout(MPS_CheckStatusExport, 3000, contextOperation);
     }
-    else {
-        window.MPS_Context.FileAliexpressComplited = true;
-        MPS_SaveContext();
+    else { 
+        window.MPS_Context.PushLog("FileAliexpressComplited"); 
         console.log("FileReportUrl:" + order.file_url);
     }
 }
@@ -136,9 +132,8 @@ function MPS_Authorization() {
         setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
         return;
     }
-
-    MPS_Context.FindLoginAndPassorkInput = true;
-    MPS_SaveContext();
+     
+    window.MPS_Context.PushLog("FindLoginAndPassorkInput"); 
 
     var buttonOK = document.querySelector("button[type=submit]");
 
@@ -146,9 +141,8 @@ function MPS_Authorization() {
     document.execCommand('insertText', false, login);
 
     pwdInput.focus();
-    document.execCommand('insertText', false, password);
-    MPS_Context.ClickAutorize = true;
-    MPS_SaveContext();
+    document.execCommand('insertText', false, password); 
+    window.MPS_Context.PushLog("ClickAutorize"); 
     buttonOK.click();
 }
 

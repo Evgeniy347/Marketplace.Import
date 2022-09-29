@@ -33,6 +33,18 @@ function MPS_SaveContext() {
     }
 }
 
+function MPS_PushLog(message) {
+    if (!this.Logs)
+        this.Logs = {};
+
+    if (this.Logs[message])
+        this.Logs[message] += 1;
+    else
+        this.Logs[message] = 1;
+     
+    MPS_SaveContext();
+}
+
 function MPS_CreateRestBuilder() {
     var request = new XMLHttpRequest();
     request.MPS_RequestHeaders = [];
@@ -42,7 +54,7 @@ function MPS_CreateRestBuilder() {
     }
 
     request.SuccessStatus = [200];
-     
+
     request.SendPost = function (url, json, callback, arg) {
         this.open("POST", url, true);
         this.responseType = "json";

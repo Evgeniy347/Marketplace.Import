@@ -18,6 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{24DB
 		Publish\Scripts\Kazanexpress.js = Publish\Scripts\Kazanexpress.js
 		Publish\Scripts\lamoda.js = Publish\Scripts\lamoda.js
 		Publish\Scripts\sbermegamarket.js = Publish\Scripts\sbermegamarket.js
+		Publish\Scripts\walberes.js = Publish\Scripts\walberes.js
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marketplace.Import", "Marketplace.Import\Marketplace.Import.csproj", "{C043FFF7-5F71-4FFC-989A-E09E18548589}"

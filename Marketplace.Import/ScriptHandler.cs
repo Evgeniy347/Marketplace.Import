@@ -65,11 +65,14 @@ namespace Marketplace.Import
 
         private void OnLoadingStateChanged(object sender, LoadingStateChangedEventArgs e)
         {
+            //Дожидаемся загрузки страницы
+            bool isLoading = !e.CanReload;
+
+            BrowserForm.Instance.FileWriter.WriteLogAsynk($"Address:{_browser.Address} IsLoading:{isLoading}");
+
             if (_currentScript == null)
                 return;
 
-            //Дожидаемся загрузки страницы
-            bool isLoading = !e.CanReload;
             if (!isLoading)
             {
                 //Проверяем url страницы
@@ -80,6 +83,10 @@ namespace Marketplace.Import
 
                     //Добавляем скрипт 
                     AddScript();
+                }
+                else
+                {
+                    BrowserForm.Instance.FileWriter.WriteLogAsynk($"Not Check Host");
                 }
             }
         }
@@ -156,8 +163,7 @@ namespace Marketplace.Import
                 if (!string.IsNullOrEmpty(AppSetting.CommonScript))
                 {
                     string valueCommonStr = File.ReadAllText(AppSetting.CommonScript);
-                    _browser.EvaluateScriptAsync(valueCommonStr)
-                        .ContinueWith((x) => _browser.EvaluateScriptAsync(valueStr));
+                    _browser.EvaluateScriptAsync(valueCommonStr + Environment.NewLine + valueStr);
                 }
                 else
                 {

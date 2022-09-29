@@ -38,21 +38,28 @@ namespace Marketplace.Import
             {
                 using (callback)
                 {
-                    string fullPath = GetPath(downloadItem);
+                    try
+                    {
+                        string fullPath = GetPath(downloadItem);
 
-                    string pathFiles = Path.GetDirectoryName(fullPath);
+                        string pathFiles = Path.GetDirectoryName(fullPath);
 
-                    if (!Directory.Exists(pathFiles))
-                        Directory.CreateDirectory(pathFiles);
+                        if (!Directory.Exists(pathFiles))
+                            Directory.CreateDirectory(pathFiles);
 
-                    downloadItem.FullPath = fullPath;
+                        downloadItem.FullPath = fullPath;
 
-                    if (File.Exists(downloadItem.FullPath))
-                        File.Delete(downloadItem.FullPath);
+                        if (File.Exists(downloadItem.FullPath))
+                            File.Delete(downloadItem.FullPath);
 
-                    callback.Continue(fullPath, false);
-                    
-                    _scriptHandler.Stop();
+                        callback.Continue(fullPath, false);
+
+                        _scriptHandler.Stop();
+                    }
+                    catch (Exception ex)
+                    {
+                        BrowserForm.Instance.FileWriter.WriteLogAsynk(ex.ToString());
+                    }
 
                     if (AppSetting.RunScript)
                     {
@@ -62,6 +69,7 @@ namespace Marketplace.Import
                                 Thread.Sleep(500);
 
                             Thread.Sleep(5000);
+                            browser.CloseDevTools();
                             Application.Exit();
                         });
 
@@ -76,12 +84,13 @@ namespace Marketplace.Import
             string fullPath = _scriptHandler.CurrentScript.ReportFile;
             if (string.IsNullOrEmpty(fullPath))
             {
+                BrowserForm.Instance.FileWriter.WriteLogAsynk("Не задано имя файла или произошла ошибка при определении имени");
                 Uri uri = new Uri(downloadItem.OriginalUrl);
                 fullPath = Path.Combine(Path.Combine(AppSetting.FileFolderReport, uri.Host), "report.xlsx");
             }
             else
             {
-                string credentialID = _scriptHandler.GetCredential(); 
+                string credentialID = _scriptHandler.GetCredential();
                 fullPath = fullPath.Replace("{CredentialID}", credentialID);
             }
 

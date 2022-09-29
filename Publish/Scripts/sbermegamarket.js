@@ -4,21 +4,24 @@ function MPS_Init() {
     if (!window.MPS_Context)
         return;
 
+    if (!window.MPS_Context.PushLog)
+        window.MPS_Context.PushLog = MPS_PushLog;
+
     if (location.href.startsWith("https://partner.sbermegamarket.ru/auth")) {
         if (!window.MPS_Context.StartAuth) {
             window.MPS_Context.StartAuth = true;
-            MPS_SaveContext(); 
+            window.MPS_Context.PushLog("StartAuth");
             //Проходим авторизацию 
             setTimeout(MPS_Authorization, 1000);
         }
     }
-    else if (location.href.startsWith("https://partner.sbermegamarket.ru/home")) { 
-        window.MPS_Context.RedirectRequest = true;
-        MPS_SaveContext();  
-        setTimeout(function () { location.href = "https://partner.sbermegamarket.ru/reports/requests"; }, 1000); 
+    else if (location.href.startsWith("https://partner.sbermegamarket.ru/home")) {
+        window.MPS_Context.PushLog("RedirectRequest");
+        setTimeout(function () { location.href = "https://partner.sbermegamarket.ru/reports/requests"; }, 1000);
     }
     else if (location.href.startsWith("https://partner.sbermegamarket.ru/reports/requests")) {
         if (!window.MPS_Context.StartCreateExport) {
+            window.MPS_Context.StartCreateExport = true;
             MPS_CreateExport();
         }
     }
@@ -28,19 +31,19 @@ function MPS_Init() {
     }
 }
 
+
 function MPS_CreateExport() {
 
-    window.MPS_Context.StartCreateExport = true;
-    MPS_SaveContext();
-
-    var contextOperation = { sessionId: MPS_GetSesionID() };
-
-    if (!contextOperation.sessionId) {
-        setTimeout(MPS_CreateExport, 100);
+    window.MPS_Context.PushLog("StartCreateExport");
+     
+    if (MPS_SelectMerchant()) {
         return;
     }
 
-    if (MPS_SelectMerchant(contextOperation)) {
+    window.MPS_Context.sessionId = MPS_GetSesionID();
+
+    if (!window.MPS_Context.sessionId) {
+        setTimeout(MPS_CreateExport, 100);
         return;
     }
 
@@ -58,37 +61,32 @@ function MPS_CreateExport() {
                 StartCreateDate: startDate.toStringMPS(),
                 EndCreateDate: endDate.toStringMPS()
             },
-            sessionId: contextOperation.sessionId,
+            sessionId: window.MPS_Context.sessionId,
         }
     };
-
-    contextOperation.CreateExport = {
-        Request: params,
-    };
-
-    window.MPS_Context.ReqestCreateExportStart = true;
-    MPS_SaveContext();
+     
+    window.MPS_Context.PushLog("ReqestCreateExportStart");
 
     var request = MPS_CreateRestBuilder();
-    request.SendPost(url, params, MPS_CreateExportCallback, contextOperation);
+    request.SendPost(url, params, MPS_CreateExportCallback);
 }
 
-function MPS_SelectMerchant(contextOperation) {
+function MPS_SelectMerchant() {
 
     if (window.MPS_Context.ReqestSelectMerchantComplited)
         return false;
 
-
     var market = "EpilProfi Москва (со склада СберМегаМаркет)";
-
-    contextOperation = contextOperation ? contextOperation : { sessionId: MPS_GetSesionID() };
-
+     
     var elementButton = MPS_GetElementFilter({
         selector: "span .goods-select__value-inner"
     });
 
-    if (!elementButton)
-        setTimeout(MPS_SelectMerchant, 100, contextOperation);
+    if (!elementButton) {
+        window.MPS_Context.PushLog("elementButton not found");
+        setTimeout(MPS_SelectMerchant, 100);
+        return;
+    }
 
     if (elementButton.textContent == market)
         return false;
@@ -101,6 +99,12 @@ function MPS_SelectMerchant(contextOperation) {
         }
     });
 
+    if (!elementOption) {
+        window.MPS_Context.PushLog("elementOption not found");
+        setTimeout(MPS_SelectMerchant, 100);
+        return;
+    }
+
     var marketID = elementOption.value;
     var url = "https://partner.sbermegamarket.ru/api/market/v2/securityService/user/impersonate";
     var params = {
@@ -109,49 +113,39 @@ function MPS_SelectMerchant(contextOperation) {
         },
         data: {
             merchantId: marketID,
-            sessionId: contextOperation.sessionId
+            sessionId: window.MPS_Context.sessionId
         }
     }
 
-    window.MPS_Context.ReqestSelectMerchant = true;
-    MPS_SaveContext();
+    window.MPS_Context.PushLog("ReqestSelectMerchant");
 
     var request = MPS_CreateRestBuilder();
-    request.SendPost(url, params, MPS_SelectMerchantCallback, contextOperation);
+    request.SendPost(url, params, MPS_SelectMerchantCallback);
 
     return true;
 }
 
-function MPS_SelectMerchantCallback(responce, contextOperation) {
+function MPS_SelectMerchantCallback(responce) {
 
     window.MPS_Context.ReqestSelectMerchantComplited = true;
-    MPS_SaveContext();
+    window.MPS_Context.PushLog("ReqestSelectMerchantComplited");
 
     console.log(responce);
     setTimeout(MPS_CreateExport, 100);
 }
 
-function MPS_CreateExportCallback(responce, contextOperation) {
+function MPS_CreateExportCallback(responce) {
 
-    window.MPS_Context.ReqestCreateExportComplited = true;
-    MPS_SaveContext();
+    window.MPS_Context.PushLog("ReqestCreateExportComplited");
 
-    console.log(responce);
-    contextOperation.CreateExport.Response = responce;
-
+    console.log(responce); 
     if (responce.data.result)
-        MPS_CheckStatusExport(contextOperation);
+        MPS_CheckStatusExport();
 }
 
-function MPS_CheckStatusExport(contextOperation) {
-
-    contextOperation = contextOperation ? contextOperation : { sessionId: MPS_GetSesionID() };
-
-    window.MPS_Context.ReqestCheckStatusExport = true;
-    if (!window.MPS_Context.ReqestCheckStatusExportCount)
-        window.MPS_Context.ReqestCheckStatusExportCount = 0;
-    window.MPS_Context.ReqestCheckStatusExportCount++;
-    MPS_SaveContext();
+function MPS_CheckStatusExport() {
+     
+    window.MPS_Context.PushLog("ReqestCheckStatusExport");
 
     const url = "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/list";
     const params = {
@@ -164,36 +158,29 @@ function MPS_CheckStatusExport(contextOperation) {
             offset: 0,
             order: "desc",
             sort: "requestDate",
-            sessionId: contextOperation.sessionId,
+            sessionId: window.MPS_Context.sessionId,
         }
     }
-
-    contextOperation.CheckStatus = {
-        Request: params,
-    };
-
+     
     var request = MPS_CreateRestBuilder();
-    request.SendPost(url, params, MPS_CheckStatusExportCallBack, contextOperation);
+    request.SendPost(url, params, MPS_CheckStatusExportCallBack);
 }
 
-function MPS_CheckStatusExportCallBack(responce, contextOperation) {
+function MPS_CheckStatusExportCallBack(responce) {
 
-    window.MPS_Context.CheckStatusExportCallBack = true; 
-    MPS_SaveContext();
+    window.MPS_Context.PushLog("CheckStatusExportCallBack");
 
-    console.log(responce);
-    contextOperation.CheckStatus.Response = responce;
+    console.log(responce); 
 
     var order = responce.data.items[0];
 
     if (!order.isCanDownload) {
         //если сервер генерит отчет то проверяем его каждую секунду
-        setTimeout(MPS_CheckStatusExport, 3000, contextOperation);
+        setTimeout(MPS_CheckStatusExport, 3000);
     }
     else {
-        window.MPS_Context.FileExportComplited = true;
-        MPS_SaveContext();
-        var url = "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/download?reportTaskId=" + order.reportTaskId + "&sessionId=" + contextOperation.sessionId;
+        window.MPS_Context.PushLog("FileExportComplited");
+        var url = "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/download?reportTaskId=" + order.reportTaskId + "&sessionId=" + window.MPS_Context.sessionId;
         console.log("FileReportUrl:" + url);
     }
 }
@@ -202,7 +189,6 @@ function MPS_GetSesionID() {
     var list = document.querySelectorAll(".requests-list__status");
 
     for (var i = 0; i < list.length; i++) {
-        //href="/api/market/v1/reportService/operationalReport/download?reportTaskId=172341&sessionId=9FE56E41-5EE8-4DA4-B470-48FE221F077C"
         var link = list[i].querySelector("a");
         if (link) {
             var startIndex = link.href.indexOf("sessionId=");
@@ -226,8 +212,8 @@ function MPS_GetOrder(orders, id) {
             return order;
     }
 }
- 
-function MPS_Authorization() { 
+
+function MPS_Authorization() {
     var login = "{Login}";
     var password = "{Password}";
 
@@ -236,14 +222,12 @@ function MPS_Authorization() {
 
     if (!loginInput || !pwdInput) {
 
-        MPS_Context.FindLoginAndPassorkInput = false;
-        MPS_SaveContext();
+        window.MPS_Context.PushLog("FindLoginAndPassorkInput");
         setTimeout(MPS_Authorization, 100);
         return;
     }
 
-    MPS_Context.FindLoginAndPassorkInput = true;
-    MPS_SaveContext();
+    window.MPS_Context.PushLog("FindLoginAndPassorkInput");
 
     var buttonOK = document.querySelector(".auth-form__submit-btn");
 
@@ -252,9 +236,9 @@ function MPS_Authorization() {
 
     pwdInput.focus();
     document.execCommand('insertText', false, password);
-    MPS_Context.ClickAutorize = true;
-    MPS_SaveContext();
+
+    window.MPS_Context.PushLog("ClickAutorize");
     setTimeout(function () { buttonOK.click() }, 500);
 }
- 
+
 MPS_Init();

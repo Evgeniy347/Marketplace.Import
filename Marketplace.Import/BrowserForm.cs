@@ -28,8 +28,13 @@ namespace Marketplace.Import
         private readonly ScriptHandler _scriptHandler;
         private readonly FileWriter _fileWriter;
 
+        public FileWriter FileWriter => _fileWriter;
+
+        public static BrowserForm Instance { get; private set; }
+
         public BrowserForm()
         {
+            Instance = this;
             InitializeComponent();
 
             Text = title;
@@ -97,9 +102,7 @@ namespace Marketplace.Import
             //Actions that trigger a download will raise an aborted error.
             //Aborted is generally safe to ignore
             if (e.ErrorCode == CefErrorCode.Aborted)
-            {
                 return;
-            }
 
             var errorHtml = string.Format("<html><body><h2>Failed to load URL {0} with error {1} ({2}).</h2></body></html>",
                                               e.FailedUrl, e.ErrorText, e.ErrorCode);
@@ -113,7 +116,6 @@ namespace Marketplace.Import
         private void OnIsBrowserInitializedChanged(object sender, EventArgs e)
         {
             var b = ((ChromiumWebBrowser)sender);
-
             this.InvokeOnUiThreadIfRequired(() => b.Focus());
         }
 
@@ -185,7 +187,7 @@ namespace Marketplace.Import
 
         public void DisplayOutput(string output)
         {
-            _fileWriter.WriteLogAsynk($"Date:{DateTime.Now} {output}");
+            _fileWriter.WriteLogAsynk(output);
             this.InvokeOnUiThreadIfRequired(() => outputLabel.Text = output);
         }
 
@@ -219,7 +221,7 @@ namespace Marketplace.Import
 
             browser.CloseDevTools();
             browser.Dispose();
-            Cef.Shutdown(); 
+            Cef.Shutdown();
             Close();
         }
 

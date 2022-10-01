@@ -15,14 +15,89 @@ if (!Date.prototype.addDays) {
     }
 }
 
+
 if (!Date.prototype.toStringMPS) {
-    Date.prototype.toStringMPS = function (whithTime) {
-        // "2022-07-01"
+    Date.prototype.toStringMPS = function (pattern) {
+
+        var result = pattern;
         var d = this;
-        var datestring = d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
-        if (whithTime)
-            datestring += " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
-        return datestring;
+
+        if (result.indexOf("yyyy") != -1) {
+            result = result.replaceAll("yyyy", d.getFullYear());
+        }
+
+        if (result.indexOf("yyy") != -1) {
+            result = result.replaceAll("yyy", d.getFullYear().toString().slice(-3));
+        }
+
+        if (result.indexOf("yy") != -1) {
+            result = result.replaceAll("yy", d.getFullYear().toString().slice(-2));
+        }
+
+        if (result.indexOf("y") != -1) {
+            result = result.replaceAll("y", d.getFullYear().toString().slice(-1));
+        }
+
+        if (result.indexOf("MM") != -1) {
+            result = result.replaceAll("MM", ("0" + (d.getMonth() + 1)).slice(-2));
+        }
+
+        if (result.indexOf("M") != -1) {
+            result = result.replaceAll("M", (d.getMonth() + 1));
+        }
+
+        if (result.indexOf("dd") != -1) {
+            result = result.replaceAll("dd", ("0" + d.getDate()).slice(-2));
+        }
+
+        if (result.indexOf("d") != -1) {
+            result = result.replaceAll("d", d.getDate());
+        }
+
+        if (result.indexOf("mm") != -1) {
+            result = result.replaceAll("mm", ("0" + d.getMinutes()).slice(-2));
+        }
+
+        if (result.indexOf("m") != -1) {
+            result = result.replaceAll("m", d.getMinutes());
+        }
+
+        if (result.indexOf("HH") != -1) {
+            result = result.replaceAll("HH", ("0" + d.getHours()).slice(-2));
+        }
+
+        if (result.indexOf("H") != -1) {
+            result = result.replaceAll("H", d.getHours());
+        }
+
+        var hh = null;
+        if (result.indexOf("h") != -1) {
+            hh = d.getHours();
+
+            if (hh == 0)
+                hh = 12 + "PM";
+            else if (hh > 12)
+                hh = (hh - 12) + "PM";
+            else
+                hh = hh + "AM";
+        }
+
+        if (result.indexOf("hh") != -1) {
+            result = result.replaceAll("hh", ("0" + hh).slice(-4));
+        }
+
+        if (result.indexOf("h") != -1) {
+            result = result.replaceAll("h", hh);
+        }
+
+        if (result.indexOf("ss") != -1) {
+            result = result.replaceAll("ss", ("0" + d.getSeconds()).slice(-2));
+        }
+
+        if (result.indexOf("s") != -1) {
+            result = result.replaceAll("s", d.getSeconds());
+        }
+        return result;
     }
 }
 
@@ -34,15 +109,17 @@ function MPS_SaveContext() {
 }
 
 function MPS_PushLog(message) {
-    if (!this.Logs)
-        this.Logs = {};
+    if (window.MPS_Context) { 
+        if (!window.MPS_Context.Logs)
+            window.MPS_Context.Logs = {};
 
-    if (this.Logs[message])
-        this.Logs[message] += 1;
-    else
-        this.Logs[message] = 1;
-     
-    MPS_SaveContext();
+        if (window.MPS_Context.Logs[message])
+            window.MPS_Context.Logs[message] += 1;
+        else
+            window.MPS_Context.Logs[message] = 1;
+
+        MPS_SaveContext();
+    }
 }
 
 function MPS_CreateRestBuilder() {
@@ -118,5 +195,66 @@ function MPS_GetElementsFilter(options) {
     }
     else {
         return elements;
+    }
+}
+
+function MPS_DownloadBase64Data(dataBase64, filename, type) {
+    MPS_PushLog("DownloadBase64Data");
+    var byteCharacters = atob(dataBase64);
+    var byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    var byteArray = new Uint8Array(byteNumbers);
+    var file = new Blob([byteArray], { type: type });
+    MPS_DownloadBlob(file, filename);
+}
+
+function MPS_DownloadData(data, filename, type) {
+    MPS_PushLog("DownloadData");
+    var file = new Blob([data], { type: type });
+    MPS_DownloadBlob(file, filename);
+}
+function MPS_DownloadBlob(blob, filename) {
+    MPS_PushLog("DownloadBlob");
+
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(blob, filename);
+    else { // Others
+        var a = document.createElement("a"),
+            url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+    }
+}
+
+function base64ToByteArray(base64String) {
+    try {
+        var sliceSize = 1024;
+        var byteCharacters = atob(base64String);
+        var bytesLength = byteCharacters.length;
+        var slicesCount = Math.ceil(bytesLength / sliceSize);
+        var byteArrays = new Array(slicesCount);
+
+        for (var sliceIndex = 0; sliceIndex < slicesCount; ++sliceIndex) {
+            var begin = sliceIndex * sliceSize;
+            var end = Math.min(begin + sliceSize, bytesLength);
+
+            var bytes = new Array(end - begin);
+            for (var offset = begin, i = 0; offset < end; ++i, ++offset) {
+                bytes[i] = byteCharacters[offset].charCodeAt(0);
+            }
+            byteArrays[sliceIndex] = new Uint8Array(bytes);
+        }
+        return byteArrays;
+    } catch (e) {
+        console.log("Couldn't convert to byte array: " + e);
+        return undefined;
     }
 }

@@ -1,0 +1,11 @@
+packages*
+exclusive.txt*
+Create7z.bat*
+.vs*
+.git*
+passwordStorage.csv*
+pass.txt*
+ReportFiles*
+Logs*
+Marketplace.Import\.vs*
+Marketplace.Import\obj*

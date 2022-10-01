@@ -4,6 +4,7 @@
 
 using CefSharp;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -19,11 +20,28 @@ namespace Marketplace.Import
 
         public event EventHandler<DownloadItem> OnDownloadUpdatedFired;
 
-        private BrowserForm _mainForm;
-        private ScriptHandler _scriptHandler;
+        private readonly BrowserForm _mainForm;
+        private readonly ScriptHandler _scriptHandler;
+        private readonly Queue<IBeforeDownloadCallback> _downloadCallbacks = new Queue<IBeforeDownloadCallback>();
+
+        public static DownloadHandler Instance { get; private set; }
+
+        public static void WaitDownloads()
+        {
+            while (Instance._downloadCallbacks.Count > 0)
+            {
+                IBeforeDownloadCallback callback = Instance._downloadCallbacks.Dequeue();
+                if (!callback.IsDisposed)
+                {
+                    Instance._downloadCallbacks.Enqueue(callback);
+                    Thread.Sleep(500);
+                }
+            }
+        }
 
         public DownloadHandler(BrowserForm form, ScriptHandler scriptHandler)
         {
+            Instance = this;
             _mainForm = form;
             _scriptHandler = scriptHandler;
         }
@@ -53,27 +71,11 @@ namespace Marketplace.Import
                             File.Delete(downloadItem.FullPath);
 
                         callback.Continue(fullPath, false);
-
-                        _scriptHandler.Stop();
+                        _downloadCallbacks.Enqueue(callback);
                     }
                     catch (Exception ex)
                     {
                         BrowserForm.Instance.FileWriter.WriteLogAsynk(ex.ToString());
-                    }
-
-                    if (AppSetting.RunScript)
-                    {
-                        Thread thread = new Thread(() =>
-                        {
-                            while (!callback.IsDisposed)
-                                Thread.Sleep(500);
-
-                            Thread.Sleep(5000);
-                            browser.CloseDevTools();
-                            Application.Exit();
-                        });
-
-                        thread.Start();
                     }
                 }
             }
@@ -81,18 +83,22 @@ namespace Marketplace.Import
 
         private string GetPath(DownloadItem downloadItem)
         {
-            string fullPath = _scriptHandler.CurrentScript.ReportFile;
+            string fullPath = _scriptHandler?.CurrentScript?.ReportFile;
             if (string.IsNullOrEmpty(fullPath))
             {
                 BrowserForm.Instance.FileWriter.WriteLogAsynk("Не задано имя файла или произошла ошибка при определении имени");
                 Uri uri = new Uri(downloadItem.OriginalUrl);
-                fullPath = Path.Combine(Path.Combine(AppSetting.FileFolderReport, uri.Host), "report.xlsx");
+                string fileName = downloadItem.SuggestedFileName;
+                if (string.IsNullOrEmpty(fileName))
+                    fileName = "report.xlsx";
+
+                fullPath = Path.Combine(Path.Combine(AppSetting.FileFolderReport, uri.Host), fileName);
             }
-            else
-            {
-                string credentialID = _scriptHandler.GetCredential();
-                fullPath = fullPath.Replace("{CredentialID}", credentialID);
-            }
+
+            string credentialID = _scriptHandler.GetCredential();
+            fullPath = fullPath
+                .Replace("{CredentialID}", credentialID)
+                .Replace("{FirstName}", downloadItem.SuggestedFileName);
 
             return fullPath;
         }

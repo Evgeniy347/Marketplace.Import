@@ -4,19 +4,16 @@ function MPS_Init() {
     if (!window.MPS_Context)
         return;
 
-    if (!window.MPS_Context.PushLog)
-        window.MPS_Context.PushLog = MPS_PushLog;
-
     if (location.href.startsWith("https://partner.sbermegamarket.ru/auth")) {
         if (!window.MPS_Context.StartAuth) {
             window.MPS_Context.StartAuth = true;
-            window.MPS_Context.PushLog("StartAuth");
+            MPS_PushLog("StartAuth");
             //Проходим авторизацию 
             setTimeout(MPS_Authorization, 1000);
         }
     }
     else if (location.href.startsWith("https://partner.sbermegamarket.ru/home")) {
-        window.MPS_Context.PushLog("RedirectRequest");
+        MPS_PushLog("RedirectRequest");
         setTimeout(function () { location.href = "https://partner.sbermegamarket.ru/reports/requests"; }, 1000);
     }
     else if (location.href.startsWith("https://partner.sbermegamarket.ru/reports/requests")) {
@@ -31,11 +28,10 @@ function MPS_Init() {
     }
 }
 
-
 function MPS_CreateExport() {
 
-    window.MPS_Context.PushLog("StartCreateExport");
-     
+    MPS_PushLog("StartCreateExport");
+
     if (MPS_SelectMerchant()) {
         return;
     }
@@ -43,9 +39,15 @@ function MPS_CreateExport() {
     window.MPS_Context.sessionId = MPS_GetSesionID();
 
     if (!window.MPS_Context.sessionId) {
-        setTimeout(MPS_CreateExport, 100);
+        setTimeout(MPS_CreateExport, 1000);
         return;
     }
+
+    if (window.MPS_Context.StartCreateOrderReport)
+        return;
+
+    window.MPS_Context.StartCreateOrderReport = true;
+    MPS_PushLog("StartCreateOrderReport");
 
     var url = "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/generate";
     var endDate = new Date();
@@ -58,14 +60,14 @@ function MPS_CreateExport() {
         data: {
             reportCode: "ORDER_REPORT",
             filters: {
-                StartCreateDate: startDate.toStringMPS(),
-                EndCreateDate: endDate.toStringMPS()
+                StartCreateDate: startDate.toStringMPS("yyyy-MM-dd"),
+                EndCreateDate: endDate.toStringMPS("yyyy-MM-dd")
             },
             sessionId: window.MPS_Context.sessionId,
         }
     };
-     
-    window.MPS_Context.PushLog("ReqestCreateExportStart");
+
+    MPS_PushLog("ReqestCreateExportStart");
 
     var request = MPS_CreateRestBuilder();
     request.SendPost(url, params, MPS_CreateExportCallback);
@@ -77,14 +79,14 @@ function MPS_SelectMerchant() {
         return false;
 
     var market = "EpilProfi Москва (со склада СберМегаМаркет)";
-     
+
     var elementButton = MPS_GetElementFilter({
         selector: "span .goods-select__value-inner"
     });
 
     if (!elementButton) {
-        window.MPS_Context.PushLog("elementButton not found");
-        setTimeout(MPS_SelectMerchant, 100);
+        MPS_PushLog("elementButton not found");
+        setTimeout(MPS_SelectMerchant, 1000);
         return;
     }
 
@@ -100,8 +102,8 @@ function MPS_SelectMerchant() {
     });
 
     if (!elementOption) {
-        window.MPS_Context.PushLog("elementOption not found");
-        setTimeout(MPS_SelectMerchant, 100);
+        MPS_PushLog("elementOption not found");
+        setTimeout(MPS_SelectMerchant, 1000);
         return;
     }
 
@@ -117,7 +119,7 @@ function MPS_SelectMerchant() {
         }
     }
 
-    window.MPS_Context.PushLog("ReqestSelectMerchant");
+    MPS_PushLog("ReqestSelectMerchant");
 
     var request = MPS_CreateRestBuilder();
     request.SendPost(url, params, MPS_SelectMerchantCallback);
@@ -128,24 +130,24 @@ function MPS_SelectMerchant() {
 function MPS_SelectMerchantCallback(responce) {
 
     window.MPS_Context.ReqestSelectMerchantComplited = true;
-    window.MPS_Context.PushLog("ReqestSelectMerchantComplited");
+    MPS_PushLog("ReqestSelectMerchantComplited");
 
     console.log(responce);
-    setTimeout(MPS_CreateExport, 100);
+    setTimeout(MPS_CreateExport, 1000);
 }
 
 function MPS_CreateExportCallback(responce) {
 
-    window.MPS_Context.PushLog("ReqestCreateExportComplited");
+    MPS_PushLog("ReqestCreateExportComplited");
 
-    console.log(responce); 
+    console.log(responce);
     if (responce.data.result)
         MPS_CheckStatusExport();
 }
 
 function MPS_CheckStatusExport() {
-     
-    window.MPS_Context.PushLog("ReqestCheckStatusExport");
+
+    MPS_PushLog("ReqestCheckStatusExport");
 
     const url = "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/list";
     const params = {
@@ -161,16 +163,16 @@ function MPS_CheckStatusExport() {
             sessionId: window.MPS_Context.sessionId,
         }
     }
-     
+
     var request = MPS_CreateRestBuilder();
     request.SendPost(url, params, MPS_CheckStatusExportCallBack);
 }
 
 function MPS_CheckStatusExportCallBack(responce) {
 
-    window.MPS_Context.PushLog("CheckStatusExportCallBack");
+    MPS_PushLog("CheckStatusExportCallBack");
 
-    console.log(responce); 
+    console.log(responce);
 
     var order = responce.data.items[0];
 
@@ -179,9 +181,10 @@ function MPS_CheckStatusExportCallBack(responce) {
         setTimeout(MPS_CheckStatusExport, 3000);
     }
     else {
-        window.MPS_Context.PushLog("FileExportComplited");
+        MPS_PushLog("FileExportComplited");
         var url = "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/download?reportTaskId=" + order.reportTaskId + "&sessionId=" + window.MPS_Context.sessionId;
         console.log("FileReportUrl:" + url);
+        console.log("StopAppScript");
     }
 }
 
@@ -222,12 +225,12 @@ function MPS_Authorization() {
 
     if (!loginInput || !pwdInput) {
 
-        window.MPS_Context.PushLog("FindLoginAndPassorkInput");
+        MPS_PushLog("FindLoginAndPassorkInput");
         setTimeout(MPS_Authorization, 100);
         return;
     }
 
-    window.MPS_Context.PushLog("FindLoginAndPassorkInput");
+    MPS_PushLog("FindLoginAndPassorkInput");
 
     var buttonOK = document.querySelector(".auth-form__submit-btn");
 
@@ -237,7 +240,7 @@ function MPS_Authorization() {
     pwdInput.focus();
     document.execCommand('insertText', false, password);
 
-    window.MPS_Context.PushLog("ClickAutorize");
+    MPS_PushLog("ClickAutorize");
     setTimeout(function () { buttonOK.click() }, 500);
 }
 

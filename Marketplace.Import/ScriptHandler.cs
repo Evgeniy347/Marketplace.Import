@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -60,6 +61,10 @@ namespace Marketplace.Import
                 {
                     _WatchDog?.Reset();
                 }
+                else if (e.Message.StartsWith("StopAppScript"))
+                {
+                    Stop();
+                }
             }
         }
 
@@ -93,11 +98,25 @@ namespace Marketplace.Import
 
         public void Stop()
         {
-            _currentScript = null;
+            //_currentScript = null;
             _WatchDog?.Dispose();
             _WatchDog = null;
             _jsonContextValue = $"{_jsonContextKey} = {{}}";
             _browser.Invoke((Action)(() => _statusLabel.Text = $"Stop"));
+             
+            if (AppSetting.RunScript)
+            {
+                Thread thread = new Thread(() =>
+                {
+                    DownloadHandler.WaitDownloads();
+                    Thread.Sleep(5000);
+                    _browser.CloseDevTools();
+                    Thread.Sleep(500);
+                    Application.Exit();
+                });
+
+                thread.Start();
+            }
         }
 
         public Task RunAsynk(string scriptName, bool repit = false)
@@ -184,6 +203,8 @@ namespace Marketplace.Import
             if (source.Contains("{Login}") || source.Contains("{Password}"))
             {
                 string credentialID = GetCredential();
+                if (string.IsNullOrEmpty(credentialID))
+                    return result;
 
                 try
                 {
@@ -207,9 +228,6 @@ namespace Marketplace.Import
             string credentialID = AppSetting.CurrentCredential;
             if (string.IsNullOrEmpty(credentialID))
                 credentialID = _currentScript.DefaultCredential;
-
-            if (string.IsNullOrEmpty(credentialID))
-                throw new MessageBoxExeption("Не задана УЗ для скрипта");
 
             return credentialID;
         }

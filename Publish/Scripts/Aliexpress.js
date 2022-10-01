@@ -3,19 +3,16 @@ function MPS_Init() {
 
     if (!window.MPS_Context)
         return;
-
-    if (!window.MPS_Context.PushLog)
-        window.MPS_Context.PushLog = MPS_PushLog; 
-
+      
     if (location.href.startsWith("https://seller.aliexpress.ru/login")) { 
-        window.MPS_Context.PushLog("Redirect auth");
+        MPS_PushLog("Redirect auth");
         setTimeout(function () { location.href = "https://auth-seller.aliexpress.ru/api/v1/auth"; }, 1000);
     }
     else if (location.href.startsWith("https://login.aliexpress.ru")) { 
         setTimeout(MPS_Authorization, 1000);
     }
     else if (location.href.startsWith("https://auth-seller.aliexpress.ru/api/v1/auth")) {
-        window.MPS_Context.PushLog("Redirect orders");
+        MPS_PushLog("Redirect orders");
         setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
     }
     else if (location.href.startsWith("https://seller.aliexpress.ru/orders/orders")) {
@@ -23,7 +20,7 @@ function MPS_Init() {
         setTimeout(function () { 
             if (!window.MPS_Context.StartCreateExport) {
                 window.MPS_Context.StartCreateExport = true;
-                window.MPS_Context.PushLog("StartCreateExport"); 
+                MPS_PushLog("StartCreateExport"); 
                 MPS_CreateExport();
             }
         }, 1000); 
@@ -56,7 +53,7 @@ function MPS_CreateExport() {
 
 function MPS_CreateExportCallBack(response, contextOperation) {
      
-    window.MPS_Context.PushLog("ReqestCreateExportComplited"); 
+    MPS_PushLog("ReqestCreateExportComplited"); 
 
     console.log(response.response);
     contextOperation.CreateExport.Response = response;
@@ -89,7 +86,7 @@ function MPS_CheckStatusExportCallBack(response, contextOperation) {
     console.log("MPS_CheckStatusExport");
     console.log(response);
      
-    window.MPS_Context.PushLog("MPS_CheckStatusExportCallBack"); 
+    MPS_PushLog("MPS_CheckStatusExportCallBack"); 
 
     contextOperation.CheckStatus.Response = response;
 
@@ -105,8 +102,9 @@ function MPS_CheckStatusExportCallBack(response, contextOperation) {
         setTimeout(MPS_CheckStatusExport, 3000, contextOperation);
     }
     else { 
-        window.MPS_Context.PushLog("FileAliexpressComplited"); 
+        MPS_PushLog("FileAliexpressComplited"); 
         console.log("FileReportUrl:" + order.file_url);
+        console.log("StopAppScript");
     }
 }
 
@@ -133,7 +131,7 @@ function MPS_Authorization() {
         return;
     }
      
-    window.MPS_Context.PushLog("FindLoginAndPassorkInput"); 
+    MPS_PushLog("FindLoginAndPassorkInput"); 
 
     var buttonOK = document.querySelector("button[type=submit]");
 
@@ -142,8 +140,8 @@ function MPS_Authorization() {
 
     pwdInput.focus();
     document.execCommand('insertText', false, password); 
-    window.MPS_Context.PushLog("ClickAutorize"); 
-    buttonOK.click();
+    MPS_PushLog("ClickAutorize");  
+    setTimeout(function () { buttonOK.click() }, 500);
 }
 
 MPS_Init();

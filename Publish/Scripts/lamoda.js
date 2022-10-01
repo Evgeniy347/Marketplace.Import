@@ -3,14 +3,11 @@ function MPS_Init() {
 
     if (!window.MPS_Context)
         return;
-
-    if (!window.MPS_Context.PushLog)
-        window.MPS_Context.PushLog = MPS_PushLog; 
-
+     
     setTimeout(function () { 
         if (!window.MPS_Context.StartAuthorizationLamoda) {
             window.MPS_Context.StartAuthorizationLamoda = true;
-            window.MPS_Context.PushLog("StartAuthorizationLamoda");
+            MPS_PushLog("StartAuthorizationLamoda");
             MPS_GetToken();
         } 
     }, 1000);
@@ -32,7 +29,7 @@ function MPS_GetToken() {
 
 
 function MPS_GetTokenCallBack(responce) { 
-    window.MPS_Context.PushLog("GetTokenCallBack");
+    MPS_PushLog("GetTokenCallBack");
 
     var url = "https://partner.lamoda.ru/api/v1/exports";
     var endDate = new Date();
@@ -55,13 +52,13 @@ function MPS_GetTokenCallBack(responce) {
 
 function MPS_DateLamodaFormat(d, end) {
     //2022 09 01 (000000 or 235959)
-    var datestring = d.getFullYear() + ("0" + (d.getMonth() + 1)).slice(-2) + ("0" + d.getDate()).slice(-2);
+    var datestring = d.toStringMPS("yyyyMMdd");
     datestring += end ? "235959" : "000000";
     return datestring;
 }
 
 function MPS_CreateExportCallback(responce, access_token) { 
-    window.MPS_Context.PushLog("CreateExportCallback");
+    MPS_PushLog("CreateExportCallback");
 
     var url = "https://partner.lamoda.ru/api/v1/exports/" + responce.id + "/download";
 
@@ -73,7 +70,7 @@ function MPS_CreateExportCallback(responce, access_token) {
 }
 
 function MPS_DownloadExport(params) { 
-    window.MPS_Context.PushLog("DownloadExport");
+    MPS_PushLog("DownloadExport");
 
     var builder = MPS_CreateGetBuilder();
 
@@ -83,7 +80,7 @@ function MPS_DownloadExport(params) {
 }
 
 function MPS_DownloadExportCallback(responce, params) { 
-    window.MPS_Context.PushLog("DownloadExportCallback");
+    MPS_PushLog("DownloadExportCallback");
 
     if (!responce || responce.byteLength == 0) {
         setTimeout(MPS_DownloadExport, 1000, params);
@@ -91,6 +88,7 @@ function MPS_DownloadExportCallback(responce, params) {
     }
 
     MPS_DownloadData(responce, "report.csv", "application/octet-stream");
+    console.log("StopAppScript");
 }
 
 function MPS_CreateGetBuilder() {
@@ -122,26 +120,6 @@ function MPS_CreateGetBuilder() {
         this.send();
     }
     return request;
-}
-
-function MPS_DownloadData(data, filename, type) {
-    window.MPS_Context.PushLog("DownloadData");
-
-    var file = new Blob([data], { type: type });
-    if (window.navigator.msSaveOrOpenBlob) // IE10+
-        window.navigator.msSaveOrOpenBlob(file, filename);
-    else { // Others
-        var a = document.createElement("a"),
-            url = URL.createObjectURL(file);
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function () {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }, 0);
-    }
-}
+} 
 
 MPS_Init();

@@ -109,7 +109,7 @@ function MPS_SaveContext() {
 }
 
 function MPS_PushLog(message) {
-    if (window.MPS_Context) { 
+    if (window.MPS_Context) {
         if (!window.MPS_Context.Logs)
             window.MPS_Context.Logs = {};
 
@@ -122,20 +122,19 @@ function MPS_PushLog(message) {
     }
 }
 
-function MPS_CreateRestBuilder() {
+function MPS_CreateGetBuilder() {
     var request = new XMLHttpRequest();
     request.MPS_RequestHeaders = [];
 
-    request.AddRequestHeader = function (key, value) {
-        request.MPS_RequestHeaders.push({ Key: key, Value: value });
-    }
+    request.AddRequestHeader = MPS_AddRequestHeader;
 
     request.SuccessStatus = [200];
+    request.MethodName = "GET";
+    request.ResponseType = "json";
 
-    request.SendPost = function (url, json, callback, arg) {
-        this.open("POST", url, true);
-        this.responseType = "json";
-        this.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+    request.SendPost = function (url, callback, arg) {
+        this.open(request.MethodName, url, true);
+        this.responseType = this.ResponseType;
 
         for (var i = 0; i < this.MPS_RequestHeaders.length; i++)
             this.setRequestHeader(this.MPS_RequestHeaders[i].Key, this.MPS_RequestHeaders[i].Value);
@@ -149,9 +148,62 @@ function MPS_CreateRestBuilder() {
                     this.mps_callback(request.response, request.mps_callback_arg);
             }
         });
-        this.send(JSON.stringify(json));
+
+        this.send();
     }
     return request;
+}
+
+function MPS_CreateRestBuilder() {
+    var request = new XMLHttpRequest();
+    request.MPS_RequestHeaders = [];
+    request.MPS_RequestHeaders.push({ Key: "Content-type", Value: "application/json;charset=UTF-8" });
+
+    request.AddRequestHeader = MPS_AddRequestHeader;
+
+    request.SuccessStatus = [200];
+    request.MethodName = "POST";
+    request.ResponseType = "json";
+    request.SendPost = function (url, json, callback, arg) {
+        this.open(request.MethodName, url, true);
+        this.responseType = this.ResponseType;
+
+        for (var i = 0; i < this.MPS_RequestHeaders.length; i++) {
+            this.setRequestHeader(this.MPS_RequestHeaders[i].Key, this.MPS_RequestHeaders[i].Value);
+        }
+
+        this.mps_callback = callback;
+        this.mps_callback_arg = arg;
+        this.addEventListener("readystatechange", () => {
+
+            if (this.readyState === 4 && this.SuccessStatus.indexOf(this.status) != -1) {
+                if (this.mps_callback)
+                    this.mps_callback(request.response, request.mps_callback_arg);
+            }
+        });
+
+        if (typeof json === "string")
+            this.send(json);
+        else
+            this.send(JSON.stringify(json));
+    }
+    return request;
+}
+
+function MPS_AddRequestHeader(key, value) {
+    var header = null;
+    for (var i = 0; i < this.MPS_RequestHeaders.length; i++) {
+        if (this.MPS_RequestHeaders[i].Key.toLowerCase() == key.toLowerCase()) {
+            header = this.MPS_RequestHeaders[i];
+            break;
+        }
+    }
+    if (header == null) {
+        this.MPS_RequestHeaders.push({ Key: key, Value: value });
+    }
+    else {
+        header.Value = value;
+    }
 }
 
 function MPS_GetElementFilter(options) {
@@ -215,6 +267,7 @@ function MPS_DownloadData(data, filename, type) {
     var file = new Blob([data], { type: type });
     MPS_DownloadBlob(file, filename);
 }
+
 function MPS_DownloadBlob(blob, filename) {
     MPS_PushLog("DownloadBlob");
 

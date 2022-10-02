@@ -204,6 +204,9 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\background.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="CefSharpAfterBuildDebug" AfterTargets="AfterBuild">
     <CallTarget Targets="CefSharpAfterBuildDiagnostic" />

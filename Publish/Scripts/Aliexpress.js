@@ -18,8 +18,8 @@ function MPS_Init() {
     else if (location.href.startsWith("https://seller.aliexpress.ru/orders/orders")) {
 
         setTimeout(function () { 
-            if (!window.MPS_Context.StartCreateExport) {
-                window.MPS_Context.StartCreateExport = true;
+            if (!window.document.body.StartAuthorization) {
+                window.document.body.StartAuthorization = true;
                 MPS_PushLog("StartCreateExport"); 
                 MPS_CreateExport();
             }

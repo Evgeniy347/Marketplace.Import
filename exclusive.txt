@@ -1,6 +1,8 @@
 packages*
 exclusive.txt*
 Create7z.bat*
+Create7z.bat*
+Cache*
 .vs*
 .git*
 passwordStorage.csv*

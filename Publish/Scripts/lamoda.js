@@ -1,15 +1,15 @@
 
-function MPS_Init() { 
+function MPS_Init() {
 
     if (!window.MPS_Context)
         return;
-     
-    setTimeout(function () { 
-        if (!window.MPS_Context.StartAuthorizationLamoda) {
-            window.MPS_Context.StartAuthorizationLamoda = true;
+
+    setTimeout(function () {
+        if (!window.document.body.StartAuthorization) {
+            window.document.body.StartAuthorization = true;
             MPS_PushLog("StartAuthorizationLamoda");
             MPS_GetToken();
-        } 
+        }
     }, 1000);
 }
 
@@ -28,12 +28,14 @@ function MPS_GetToken() {
 }
 
 
-function MPS_GetTokenCallBack(responce) { 
+function MPS_GetTokenCallBack(responce) {
     MPS_PushLog("GetTokenCallBack");
 
     var url = "https://partner.lamoda.ru/api/v1/exports";
     var endDate = new Date();
-    var startDate = endDate.addDays(-40); // 40 дней от текущей даты 
+    var startDate = endDate.addDays(-1);
+    endDate = startDate;
+
     var filterDate = MPS_DateLamodaFormat(startDate) + "%2C" + MPS_DateLamodaFormat(endDate, true);
     var request = {
         "filter": "createdAt%26gt%3B%3D%26lt%3B" + filterDate,
@@ -57,7 +59,7 @@ function MPS_DateLamodaFormat(d, end) {
     return datestring;
 }
 
-function MPS_CreateExportCallback(responce, access_token) { 
+function MPS_CreateExportCallback(responce, access_token) {
     MPS_PushLog("CreateExportCallback");
 
     var url = "https://partner.lamoda.ru/api/v1/exports/" + responce.id + "/download";
@@ -69,17 +71,18 @@ function MPS_CreateExportCallback(responce, access_token) {
     MPS_DownloadExport(params);
 }
 
-function MPS_DownloadExport(params) { 
+function MPS_DownloadExport(params) {
     MPS_PushLog("DownloadExport");
 
     var builder = MPS_CreateGetBuilder();
 
+    builder.ResponseType = "arraybuffer";
     builder.AddRequestHeader("Authorization", "Bearer " + params.access_token);
     builder.SuccessStatus.push(404);
     builder.SendPost(params.FileURL, MPS_DownloadExportCallback, params);
 }
 
-function MPS_DownloadExportCallback(responce, params) { 
+function MPS_DownloadExportCallback(responce, params) {
     MPS_PushLog("DownloadExportCallback");
 
     if (!responce || responce.byteLength == 0) {
@@ -89,37 +92,6 @@ function MPS_DownloadExportCallback(responce, params) {
 
     MPS_DownloadData(responce, "report.csv", "application/octet-stream");
     console.log("StopAppScript");
-}
-
-function MPS_CreateGetBuilder() {
-    var request = new XMLHttpRequest();
-    request.MPS_RequestHeaders = [];
-
-    request.AddRequestHeader = function (key, value) {
-        request.MPS_RequestHeaders.push({ Key: key, Value: value });
-    }
-
-    request.SuccessStatus = [200];
-
-    request.SendPost = function (url, callback, arg) {
-        this.open("GET", url, true);
-        this.responseType = "arraybuffer";
-
-        for (var i = 0; i < this.MPS_RequestHeaders.length; i++)
-            this.setRequestHeader(this.MPS_RequestHeaders[i].Key, this.MPS_RequestHeaders[i].Value);
-
-        this.mps_callback = callback;
-        this.mps_callback_arg = arg;
-        this.addEventListener("readystatechange", () => {
-
-            if (this.readyState === 4 && this.SuccessStatus.indexOf(this.status) != -1) {
-                if (this.mps_callback)
-                    this.mps_callback(request.response, request.mps_callback_arg);
-            }
-        });
-        this.send();
-    }
-    return request;
 } 
 
 MPS_Init();

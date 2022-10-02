@@ -1,46 +1,78 @@
 ﻿
-function Authorization() {
-      
-    var login = "markinevgeniy2010@mail.ru";
-    var password = "s";
+function MPS_Init() {
 
-    var loginInput = document.querySelector("#fm-login-id");
-    var pwdInput = document.querySelector("#fm-login-password");
- 
-    if (!loginInput || !pwdInput) {
+    if (!window.MPS_Context)
+        return;
 
-        var checkVerifyLog = document.querySelector("#baxia-dialog-content");
-        if (checkVerifyLog) {
-            console.error("find baxia-dialog-content");
-            console.error("Application:Exit");
-            return;
-        };
-
-        var buttonOK = document.querySelector(".comet-btn");
-        if (buttonOK) {
-            if (!buttonOK.AuthorizationClick)
-                buttonOK.click();
-            buttonOK.AuthorizationClick = true;
-            setTimeout(Authorization, 10);
-            return;
+    setTimeout(function () {
+        if (!window.document.body.StartAuthorization) {
+            window.document.body.StartAuthorization = true;
+            MPS_PushLog("StartAuthorizationKazanexpress");
+            MPS_GetToken();
         }
-    }
+    }, 1000);
+}
 
-    var buttonOK = document.querySelector(".login-submit");
+function MPS_GetToken() {
 
-    loginInput.focus();
-    document.execCommand('insertText', false, login);
+    var login = "{Login}";
+    var password = "{Password}";
 
-    pwdInput.focus();
-    document.execCommand('insertText', false, password);
+    var url = "https://api.business.kazanexpress.ru/api/oauth/token";
+    var request = "grant_type=password&username=" + encodeURIComponent(login) + "&password=" + encodeURIComponent(password);
 
-    buttonOK.click(); 
+    debugger;
+    var builder = MPS_CreateRestBuilder();
+    builder.AddRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    builder.AddRequestHeader("Authorization", "Basic a2F6YW5leHByZXNzOnNlY3JldEtleQ==");
+    builder.withCredentials = true;
+    builder.SendPost(url, request, MPS_GetTokenCallBack);
 }
 
 
-function SetValueInput() {
+function MPS_GetTokenCallBack(responce) {
+    MPS_PushLog("GetTokenCallBack");
 
+    var dateTo = new Date();
+    var dateFrom = dateTo.addDays(-80); //дней выгрузки
 
+    dateTo = parseInt(dateTo.valueOf() / 1000);
+    dateFrom = parseInt(dateFrom.valueOf() / 1000);
+
+    var url = "https://api.business.kazanexpress.ru/api/seller/finance/orders?" +
+        "size=1073741824" +
+        "&page=0" +
+        "&group=false" +
+        "&dateFrom=" + dateFrom +
+        "&dateTo=" + dateTo;
+
+    var builder = MPS_CreateGetBuilder();
+    builder.AddRequestHeader("Accept", "*/*");
+    builder.AddRequestHeader("Access-Control-Request-Method", "GET");
+    builder.AddRequestHeader("Access-Control-Request-Headers", "authorization");
+    builder.AddRequestHeader("Sec-Fetch-Mode", "cors");
+    builder.AddRequestHeader("Sec-Fetch-Site", "same-site");
+    builder.AddRequestHeader("Sec-Fetch-Dest", "empty");
+    builder.MethodName = "OPTIONS";
+
+    builder.SendPost(url, MPS_CreateExportOptionCallback, { url: url, access_token: responce.access_token });
 }
 
-Authorization(); 
+function MPS_CreateExportOptionCallback(responce, option) {
+    MPS_PushLog("CreateExportOptionCallback");
+
+    var builder = MPS_CreateGetBuilder();
+    builder.AddRequestHeader("Accept", "application/json");
+    builder.AddRequestHeader("Authorization", "Bearer " + option.access_token);
+    builder.withCredentials = true;
+
+    builder.SendPost(option.url, MPS_CreateExportGetCallback, option);
+}
+
+function MPS_CreateExportGetCallback(responce, option) {
+    MPS_PushLog("CreateExportGetCallback");
+    MPS_DownloadData(JSON.stringify(responce), "report.json", "application/octet-stream");
+    console.log("StopAppScript");
+}
+
+MPS_Init();

@@ -56,6 +56,32 @@ namespace Marketplace.Import
             }
         }
 
+        public static string FolderCache
+        {
+            get
+            {
+                string folder;
+
+                if (!string.IsNullOrEmpty(RunScriptName))
+                {
+                    folder = $"Cache_Script_{RunScriptName}";
+                    if (!string.IsNullOrEmpty(CurrentCredentialID))
+                        folder = $"{folder}_{CurrentCredentialID}";
+
+                    folder = Path.Combine(RootFolder, "Cache", folder);
+                }
+                else
+                {
+                    folder = Path.Combine(RootFolder, "Cache", "Default");
+                }
+
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+
+                return folder;
+            }
+        }
+
         private static PasswordManager _PasswordManager;
         public static PasswordManager PasswordManager
         {
@@ -89,7 +115,7 @@ namespace Marketplace.Import
 
         public static bool RunScript => !string.IsNullOrEmpty(RunScriptName);
 
-        public static string CurrentCredential { get; internal set; }
+        public static string CurrentCredentialID { get; internal set; }
 
         private static void EnsureSettingsLoaded()
         {

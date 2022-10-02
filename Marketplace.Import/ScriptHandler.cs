@@ -24,6 +24,7 @@ namespace Marketplace.Import
         public bool WatchDogEnable { get; set; }
         private int _countAttempts;
         private ToolStripLabel _statusLabel;
+        private bool _stop;
 
         public ScriptHandler(ChromiumWebBrowser browser, ToolStripLabel statusLabel)
         {
@@ -65,11 +66,22 @@ namespace Marketplace.Import
                 {
                     Stop();
                 }
+                else if (e.Message.StartsWith("EnableBrowser"))
+                {
+                    BrowserForm.Instance.EnableBrowser();
+                }
+                else if (e.Message.StartsWith("DisableBrowser"))
+                {
+                    BrowserForm.Instance.DisableBrowser();
+                }
             }
         }
 
         private void OnLoadingStateChanged(object sender, LoadingStateChangedEventArgs e)
         {
+            if (_stop)
+                return;
+
             //Дожидаемся загрузки страницы
             bool isLoading = !e.CanReload;
 
@@ -99,11 +111,12 @@ namespace Marketplace.Import
         public void Stop()
         {
             //_currentScript = null;
+            _stop = true;
             _WatchDog?.Dispose();
             _WatchDog = null;
             _jsonContextValue = $"{_jsonContextKey} = {{}}";
             _browser.Invoke((Action)(() => _statusLabel.Text = $"Stop"));
-             
+
             if (AppSetting.RunScript)
             {
                 Thread thread = new Thread(() =>
@@ -121,6 +134,7 @@ namespace Marketplace.Import
 
         public Task RunAsynk(string scriptName, bool repit = false)
         {
+            _stop = false;
             _currentScript = AppSetting.Scripts.FirstOrDefault(x => x.Name.Equals(scriptName, StringComparison.OrdinalIgnoreCase)) ??
                 throw new Exception($"Не найден скрипт по имени '{scriptName}'");
 
@@ -225,7 +239,7 @@ namespace Marketplace.Import
 
         public string GetCredential()
         {
-            string credentialID = AppSetting.CurrentCredential;
+            string credentialID = AppSetting.CurrentCredentialID;
             if (string.IsNullOrEmpty(credentialID))
                 credentialID = _currentScript.DefaultCredential;
 

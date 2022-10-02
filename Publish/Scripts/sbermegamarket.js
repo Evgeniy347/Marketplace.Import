@@ -17,8 +17,8 @@ function MPS_Init() {
         setTimeout(function () { location.href = "https://partner.sbermegamarket.ru/reports/requests"; }, 1000);
     }
     else if (location.href.startsWith("https://partner.sbermegamarket.ru/reports/requests")) {
-        if (!window.MPS_Context.StartCreateExport) {
-            window.MPS_Context.StartCreateExport = true;
+        if (!window.document.body.StartAuthorization) {
+            window.document.body.StartAuthorization = true;
             MPS_CreateExport();
         }
     }
@@ -177,7 +177,7 @@ function MPS_CheckStatusExportCallBack(responce) {
     var order = responce.data.items[0];
 
     if (!order.isCanDownload) {
-        //если сервер генерит отчет то проверяем его каждую секунду
+        //если сервер генерит отчет то проверяем его
         setTimeout(MPS_CheckStatusExport, 3000);
     }
     else {

@@ -313,12 +313,35 @@ namespace Marketplace.Import
             disabledToolStripMenuItem.Checked = !browser.Enabled;
         }
 
+        public void EnableBrowser()
+        {
+            this.InvokeOnUiThreadIfRequired(() =>
+            {
+                disabledToolStripMenuItem.Checked = false;
+                browser.Enabled = !disabledToolStripMenuItem.Checked;
+            });
+        }
+
+        public void DisableBrowser()
+        {
+            this.InvokeOnUiThreadIfRequired(() =>
+            {
+                disabledToolStripMenuItem.Checked = true;
+                browser.Enabled = !disabledToolStripMenuItem.Checked;
+            });
+        }
+
         private void stopToolStripMenuItem_Click(object sender, EventArgs e)
         {
             _scriptHandler.Stop();
         }
 
         private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pictureBoxDisable_Click(object sender, EventArgs e)
         {
 
         }

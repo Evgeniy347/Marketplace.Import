@@ -3,14 +3,17 @@ function MPS_Init() {
 
     if (!window.MPS_Context)
         return;
-     
+
     if (location.href.startsWith("https://seller.wildberries.ru/login")) {
         //Ничего не делаем, если попали сюда то ждем аутентификацию
         MPS_PushLog("StartAuth");
+        console.log("EnableBrowser");
     }
     else if (location.href.startsWith("https://seller.wildberries.ru/analytics")) {
-        if (!window.MPS_Context.StartCreateExport) {
-            window.MPS_Context.StartCreateExport = true;
+        if (!window.document.body.StartAuthorization) {
+            window.document.body.StartAuthorization = true;
+            console.log("DisableBrowser");
+
             setTimeout(function () { MPS_CreateConsolidatedExport(); }, 1000);
             setTimeout(function () { MPS_CreateWeeklydynamicsExport(); }, 1500);
         }

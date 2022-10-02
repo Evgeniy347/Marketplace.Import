@@ -23,7 +23,7 @@ namespace Marketplace.Import
                 if (args.Length > 0)
                     AppSetting.RunScriptName = args[0];
                 if (args.Length > 1)
-                    AppSetting.CurrentCredential = args[1];
+                    AppSetting.CurrentCredentialID = args[1];
             }
 
             // Programmatically enable DPI Aweness
@@ -35,7 +35,7 @@ namespace Marketplace.Import
             var settings = new CefSettings()
             {
                 //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
-                CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache")
+                CachePath = Path.Combine(AppSetting.FolderCache)
             };
 
             //Example of setting a command line argument

@@ -116,6 +116,7 @@ namespace Marketplace.Import
         public static bool RunScript => !string.IsNullOrEmpty(RunScriptName);
 
         public static string CurrentCredentialID { get; internal set; }
+        public static bool ShowDevelop { get; internal set; }
 
         private static void EnsureSettingsLoaded()
         {

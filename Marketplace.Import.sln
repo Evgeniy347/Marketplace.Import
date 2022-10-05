@@ -5,9 +5,7 @@ VisualStudioVersion = 17.2.32526.322
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Publish", "Publish", "{4F4BCBA8-D8A5-4682-9566-62535A2D829D}"
 	ProjectSection(SolutionItems) = preProject
-		Publish\cryptData.csv = Publish\cryptData.csv
-		Publish\Run_SberMegaMarket.cmd = Publish\Run_SberMegaMarket.cmd
-		Publish\Run_ScriptAliexpress.cmd = Publish\Run_ScriptAliexpress.cmd
+		Publish\passwordStorage.csv = Publish\passwordStorage.csv
 		Publish\Scripts.ini = Publish\Scripts.ini
 	EndProjectSection
 EndProject

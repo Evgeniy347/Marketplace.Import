@@ -10,7 +10,7 @@ function MPS_Init() {
             MPS_PushLog("StartAuthorizationKazanexpress");
             MPS_GetToken();
         }
-    }, 1000);
+    }, 3000);
 }
 
 function MPS_GetToken() {

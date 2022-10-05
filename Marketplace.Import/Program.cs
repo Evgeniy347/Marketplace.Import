@@ -24,6 +24,8 @@ namespace Marketplace.Import
                     AppSetting.RunScriptName = args[0];
                 if (args.Length > 1)
                     AppSetting.CurrentCredentialID = args[1];
+                if (args.Length > 2)
+                    AppSetting.ShowDevelop = args[2] == "dev";
             }
 
             // Programmatically enable DPI Aweness

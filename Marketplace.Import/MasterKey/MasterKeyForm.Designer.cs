@@ -62,13 +62,13 @@
             // 
             this.CredentialID.HeaderText = "CredentialID";
             this.CredentialID.Name = "CredentialID";
-            this.CredentialID.Width = 200;
+            this.CredentialID.Width = 250;
             // 
             // Login
             // 
             this.Login.HeaderText = "Login";
             this.Login.Name = "Login";
-            this.Login.Width = 200;
+            this.Login.Width = 250;
             // 
             // Password
             // 

@@ -101,6 +101,32 @@ if (!Date.prototype.toStringMPS) {
     }
 }
 
+function MPS_SetCookie(name, value, days) {
+    var expires = "";
+    MPS_DeleteCookie(name);
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+} 
+
+function MPS_DeleteCookie(name, path, domain) {
+    if (MPS_GetCookie(name)) {
+        document.cookie = name + "=" +
+            ((path) ? ";path=" + path : "") +
+            ((domain) ? ";domain=" + domain : "") +
+            ";expires=Thu, 01 Jan 1970 00:00:01 GMT";
+    }
+}
+
+function MPS_GetCookie(name) {
+    return document.cookie.split(';').some(c => {
+        return c.trim().startsWith(name + '=');
+    });
+}
+
 function MPS_SaveContext() {
     if (window.MPS_Context) {
         var value = "MPS_Context = " + JSON.stringify(window.MPS_Context);

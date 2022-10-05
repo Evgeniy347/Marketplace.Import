@@ -117,19 +117,18 @@ namespace Marketplace.Import
             _jsonContextValue = $"{_jsonContextKey} = {{}}";
             _browser.Invoke((Action)(() => _statusLabel.Text = $"Stop"));
 
-            if (AppSetting.RunScript)
-            {
-                Thread thread = new Thread(() =>
-                {
-                    DownloadHandler.WaitDownloads();
-                    Thread.Sleep(5000);
-                    _browser.CloseDevTools();
-                    Thread.Sleep(500);
-                    Application.Exit();
-                });
+            BrowserForm.CloseForm();
+        }
 
-                thread.Start();
-            }
+        private void ShowDevToolAsynk()
+        {
+            _browser.InvokeOnUiThreadIfRequired(() =>
+            {
+                if (_browser.BrowserCore != null)
+                    _browser.ShowDevTools();
+                else
+                    Task.Run(() => { Thread.Sleep(100); ShowDevToolAsynk(); });
+            });
         }
 
         public Task RunAsynk(string scriptName, bool repit = false)
@@ -138,19 +137,28 @@ namespace Marketplace.Import
             _currentScript = AppSetting.Scripts.FirstOrDefault(x => x.Name.Equals(scriptName, StringComparison.OrdinalIgnoreCase)) ??
                 throw new Exception($"Не найден скрипт по имени '{scriptName}'");
 
+
+            BrowserForm.Instance.FileWriter.WriteLogAsynk($"RunAsynk:{scriptName}");
             _browser.InvokeOnUiThreadIfRequired(() => _statusLabel.Text = $"Run ({scriptName})");
 
-            if (repit)
-            {
-                if (_countAttempts >= _currentScript.Attempts)
-                    return null;
+            if (AppSetting.ShowDevelop)
+                ShowDevToolAsynk();
+
+
+
+            if (AppSetting.ShowDevelop)
+
+                if (repit)
+                {
+                    if (_countAttempts >= _currentScript.Attempts)
+                        return null;
+                    else
+                        _countAttempts++;
+                }
                 else
-                    _countAttempts++;
-            }
-            else
-            {
-                _countAttempts = 0;
-            }
+                {
+                    _countAttempts = 0;
+                }
 
             if (_currentScript.WatchDog > 0)
             {
@@ -159,6 +167,7 @@ namespace Marketplace.Import
                     WatchDog current = _WatchDog;
                     _WatchDog = new WatchDog(() =>
                     {
+                        BrowserForm.Instance.FileWriter.WriteLogAsynk($"WatchDogReset");
                         RunAsynk(scriptName, true);
                     }
                     , _currentScript.WatchDog);
@@ -174,12 +183,17 @@ namespace Marketplace.Import
 
         private void AddScriptContext()
         {
+            string script = $"{_jsonContextKey} = {{}}";
             if (!string.IsNullOrEmpty(_jsonContextValue))
-                _browser.EvaluateScriptAsync(_jsonContextValue);
+                script = _jsonContextValue;
+
+            BrowserForm.Instance.FileWriter.WriteLogAsynk($"AddScriptContext:{script}");
+            _browser.EvaluateScriptAsync(script);
         }
 
         private void AddNewContext()
         {
+            BrowserForm.Instance.FileWriter.WriteLogAsynk($"AddNewContext");
             _browser.EvaluateScriptAsync($"{_jsonContextKey} = {{}}");
         }
 
@@ -190,6 +204,7 @@ namespace Marketplace.Import
                 if (_currentScript == null)
                     return Task.Run(() => { });
 
+                BrowserForm.Instance.FileWriter.WriteLogAsynk($"AddScript");
                 string valueStr = File.ReadAllText(_currentScript.FileScript);
                 valueStr = ReplasePasword(valueStr);
 
@@ -205,6 +220,10 @@ namespace Marketplace.Import
             }
             catch (Exception ex)
             {
+                BrowserForm.Instance.FileWriter.WriteLogAsynk(ex.ToString());
+                if (AppSetting.RunScript)
+                    BrowserForm.CloseForm();
+
                 MessageBox.Show(ex.ToString());
             }
 

@@ -1,5 +1,6 @@
 ﻿
 function MPS_Init() {
+    console.log("MPS_Init")
 
     if (!window.MPS_Context)
         return;
@@ -14,14 +15,25 @@ function MPS_Init() {
             window.document.body.StartAuthorization = true;
             console.log("DisableBrowser");
 
-            setTimeout(function () { MPS_CreateConsolidatedExport(); }, 1000);
-            setTimeout(function () { MPS_CreateWeeklydynamicsExport(); }, 1500);
+            setTimeout(function () { MPS_CreateExport(); }, 1000);
         }
     }
     else {
         //если ничего из вышеперечисленного то вызывает повтроно, возможно будет редирект
         setTimeout(MPS_Init, 100);
     }
+}
+
+function MPS_CreateExport() {
+    var supplierid = "{Login}";
+
+    if (supplierid) {
+        MPS_SetCookie("x-supplier-id", supplierid);
+        MPS_SetCookie("x-supplier-id-external", supplierid);
+    }
+
+    setTimeout(function () { MPS_CreateConsolidatedExport(); }, 1000);
+    setTimeout(function () { MPS_CreateWeeklydynamicsExport(); }, 1500);
 }
 
 function MPS_CreateConsolidatedExport() {

@@ -13,6 +13,8 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using CefSharp;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Marketplace.Import
 {
@@ -58,7 +60,7 @@ namespace Marketplace.Import
             browser.TitleChanged += OnBrowserTitleChanged;
             browser.AddressChanged += OnBrowserAddressChanged;
             browser.LoadError += OnBrowserLoadError;
-
+             
             DownloadHandler downer = new DownloadHandler(this, _scriptHandler);
             browser.DownloadHandler = downer;
 
@@ -93,7 +95,7 @@ namespace Marketplace.Import
             string logFileName = Path.Combine(filder,
                 String.IsNullOrEmpty(AppSetting.RunScriptName) ?
                 $"{DateTime.Now:yyyy.dd.MM HH.mm.ss}.log" :
-                $"{AppSetting.RunScriptName}_{DateTime.Now:yyyy.dd.MM HH.mm.ss}.log");
+                $"{AppSetting.RunScriptName}_{AppSetting.CurrentCredentialID}_{DateTime.Now:yyyy.dd.MM HH.mm.ss}.log");
             return logFileName;
         }
 
@@ -344,6 +346,23 @@ namespace Marketplace.Import
         private void pictureBoxDisable_Click(object sender, EventArgs e)
         {
 
+        }
+
+        internal static void CloseForm()
+        { 
+            if (AppSetting.RunScript && !AppSetting.ShowDevelop)
+            {
+                Thread thread = new Thread(() =>
+                {
+                    DownloadHandler.WaitDownloads();
+                    Thread.Sleep(5000);
+                    Instance.InvokeOnUiThreadIfRequired(() => Instance.browser.CloseDevTools());
+                    Thread.Sleep(500);
+                    Application.Exit();
+                });
+
+                thread.Start();
+            }
         }
     }
 }

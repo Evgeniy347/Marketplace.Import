@@ -4,7 +4,7 @@ function MPS_Init() {
     if (!window.MPS_Context)
         return;
       
-    if (location.href.startsWith("https://seller.aliexpress.ru/login")) { 
+    if (location.href.startsWith("https://seller.aliexpress.ru/login")) {  
         MPS_PushLog("Redirect auth");
         setTimeout(function () { location.href = "https://auth-seller.aliexpress.ru/api/v1/auth"; }, 1000);
     }
@@ -42,6 +42,8 @@ function MPS_CreateExport() {
         date_created_to: endDate.toISOString(),
         timezone: 5
     };
+     
+    MPS_SetEternalCookies();
 
     contextOperation.CreateExport = {
         Request: params,

@@ -1,1 +1,1 @@
-"..\Marketplace.Import\bin\x86\Debug\net452\Marketplace.Import.exe" SberMegaMarket
+"..\Marketplace.Import\bin\x86\Debug\net452\Marketplace.Import.exe" ScriptName=SberMegaMarket

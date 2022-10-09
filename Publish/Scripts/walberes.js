@@ -25,7 +25,7 @@ function MPS_Init() {
 }
 
 function MPS_CreateExport() {
-    var supplierid = "{Login}";
+    var supplierid = MPS_GetParams("SupplierID"); 
 
     if (supplierid) {
         MPS_SetCookie("x-supplier-id", supplierid);

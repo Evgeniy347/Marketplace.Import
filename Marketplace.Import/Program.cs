@@ -6,6 +6,7 @@ using CefSharp;
 using CefSharp.WinForms;
 using System;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace Marketplace.Import
@@ -20,12 +21,10 @@ namespace Marketplace.Import
 #endif
             if (args != null)
             {
-                if (args.Length > 0)
-                    AppSetting.RunScriptName = args[0];
-                if (args.Length > 1)
-                    AppSetting.CurrentCredentialID = args[1];
-                if (args.Length > 2)
-                    AppSetting.ShowDevelop = args[2] == "dev";
+                string[] namesParams = args.Where(x => x.Contains("=")).Select(x => x.Trim()).ToArray();
+                string[] notNamesParams = args.Where(x => !x.Contains("=")).Select(x => x.Trim()).ToArray();
+
+                AppSetting.InitArgs(namesParams);
             }
 
             // Programmatically enable DPI Aweness

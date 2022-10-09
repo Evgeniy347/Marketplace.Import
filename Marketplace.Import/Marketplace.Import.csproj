@@ -133,10 +133,8 @@
     <Compile Include="Exceptions\MessageBoxExeption.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\URLExtensions.cs" />
-    <Compile Include="Helpers\DictionaryParceValueExtensions.cs" />
-    <Compile Include="Helpers\IDictionaryParceValue.cs" />
+    <Compile Include="Helpers\FileWriter.cs" />
     <Compile Include="Helpers\INIReaderHelper.cs" />
-    <Compile Include="Helpers\INISection.cs" />
     <Compile Include="Helpers\QueueActionHelper.cs" />
     <Compile Include="Helpers\ResizeFormHelper.cs" />
     <Compile Include="MasterKey\MasterKeyForm.cs">

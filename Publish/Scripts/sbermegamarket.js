@@ -5,8 +5,9 @@ function MPS_Init() {
         return;
 
     if (location.href.startsWith("https://partner.sbermegamarket.ru/auth")) {
-        if (!window.MPS_Context.StartAuth) {
-            window.MPS_Context.StartAuth = true;
+
+        if (!window.document.body.StartAuthorization) {
+            window.document.body.StartAuthorization = true;
             MPS_PushLog("StartAuth");
             //Проходим авторизацию 
             setTimeout(MPS_Authorization, 1000);
@@ -17,8 +18,9 @@ function MPS_Init() {
         setTimeout(function () { location.href = "https://partner.sbermegamarket.ru/reports/requests"; }, 1000);
     }
     else if (location.href.startsWith("https://partner.sbermegamarket.ru/reports/requests")) {
-        if (!window.document.body.StartAuthorization) {
-            window.document.body.StartAuthorization = true;
+        if (!window.document.body.StartCreateExport) {
+            window.document.body.StartCreateExport = true;
+            MPS_PushLog("StartCreateExport");
             MPS_CreateExport();
         }
     }
@@ -30,12 +32,6 @@ function MPS_Init() {
 
 function MPS_CreateExport() {
 
-    MPS_PushLog("StartCreateExport");
-
-    if (MPS_SelectMerchant()) {
-        return;
-    }
-
     window.MPS_Context.sessionId = MPS_GetSesionID();
 
     if (!window.MPS_Context.sessionId) {
@@ -43,12 +39,21 @@ function MPS_CreateExport() {
         return;
     }
 
+    if (!window.document.body.SelectMerchantComplited) {
+        MPS_SelectMerchant();
+        return;
+    }
+
     if (window.MPS_Context.StartCreateOrderReport)
         return;
 
-    window.MPS_Context.StartCreateOrderReport = true;
-    MPS_PushLog("StartCreateOrderReport");
+    setTimeout(MPS_CreateExportReport, 1000);
+    setTimeout(MPS_FileBalanceDownload, 1500);
+}
 
+function MPS_CreateExportReport() {
+    MPS_PushLog("StartCreateOrderReport");
+    debugger;
     var url = "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/generate";
     var endDate = new Date();
     var startDate = endDate.addDays(-40); // 40 дней от текущей даты
@@ -70,44 +75,44 @@ function MPS_CreateExport() {
     MPS_PushLog("ReqestCreateExportStart");
 
     var request = MPS_CreateRestBuilder();
-    request.SendPost(url, params, MPS_CreateExportCallback);
+    request.SendPost(url, params, MPS_CreateExportReportCallback);
+}
+
+function MPS_FileBalanceDownload() {
+
+    var url = "https://partner.sbermegamarket.ru/api/merchantUIService/v1/partnerService/stock/download";
+
+    var params =
+    {
+        meta: {
+            from: "mui-main"
+        },
+        data: {
+            sessionId: window.MPS_Context.sessionId,
+        }
+    };
+
+    var request = MPS_CreateRestBuilder();
+    request.ResponseType = "arraybuffer";
+    request.SendPost(url, params, MPS_FileBalanceDownloadCallBack);
+}
+
+function MPS_FileBalanceDownloadCallBack(responce) {
+    MPS_PushLog("FileBalanceDownloadCallBack");
+
+    MPS_DownloadData(responce, "FileBalance.xlsx", "application/octet-stream");
+    window.MPS_Context.FileBalanceDownload = true;
+    MPS_CheckStopScript();
 }
 
 function MPS_SelectMerchant() {
 
-    if (window.MPS_Context.ReqestSelectMerchantComplited)
-        return false;
-
-    var market = "EpilProfi Москва (со склада СберМегаМаркет)";
-
-    var elementButton = MPS_GetElementFilter({
-        selector: "span .goods-select__value-inner"
-    });
-
-    if (!elementButton) {
-        MPS_PushLog("elementButton not found");
-        setTimeout(MPS_SelectMerchant, 1000);
+    var marketID = MPS_GetParams("MarketID");
+    if (!marketID) {
+        setTimeout(MPS_CreateExport, 1000);
         return;
     }
 
-    if (elementButton.textContent == market)
-        return false;
-
-    var elementOption = MPS_GetElementFilter({
-        selector: "select[name=select-merchant]",
-        childOptions: {
-            selector: "option",
-            innerTextContaince: market
-        }
-    });
-
-    if (!elementOption) {
-        MPS_PushLog("elementOption not found");
-        setTimeout(MPS_SelectMerchant, 1000);
-        return;
-    }
-
-    var marketID = elementOption.value;
     var url = "https://partner.sbermegamarket.ru/api/market/v2/securityService/user/impersonate";
     var params = {
         meta: {
@@ -123,22 +128,20 @@ function MPS_SelectMerchant() {
 
     var request = MPS_CreateRestBuilder();
     request.SendPost(url, params, MPS_SelectMerchantCallback);
-
-    return true;
 }
 
 function MPS_SelectMerchantCallback(responce) {
 
-    window.MPS_Context.ReqestSelectMerchantComplited = true;
+    window.document.body.SelectMerchantComplited = true;
     MPS_PushLog("ReqestSelectMerchantComplited");
 
     console.log(responce);
     setTimeout(MPS_CreateExport, 1000);
 }
 
-function MPS_CreateExportCallback(responce) {
+function MPS_CreateExportReportCallback(responce) {
 
-    MPS_PushLog("ReqestCreateExportComplited");
+    MPS_PushLog("CreateExportReportCallback");
 
     console.log(responce);
     if (responce.data.result)
@@ -156,7 +159,7 @@ function MPS_CheckStatusExport() {
                 "mui-reports"
         },
         data: {
-            limit: 10,
+            limit: 5,
             offset: 0,
             order: "desc",
             sort: "requestDate",
@@ -183,9 +186,24 @@ function MPS_CheckStatusExportCallBack(responce) {
     else {
         MPS_PushLog("FileExportComplited");
         var url = "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/download?reportTaskId=" + order.reportTaskId + "&sessionId=" + window.MPS_Context.sessionId;
-        console.log("FileReportUrl:" + url);
-        console.log("StopAppScript");
+
+        var request = MPS_CreateGetBuilder();
+        request.ResponseType = "arraybuffer";
+        request.SendPost(url, MPS_ReportExportDonloadCallback); 
     }
+}
+
+function MPS_ReportExportDonloadCallback(responce) {
+    MPS_PushLog("ReportExportDonloadCallback");
+
+    MPS_DownloadData(responce, "Report.xls", "application/octet-stream");
+    window.MPS_Context.FileReportDownload = true;
+    MPS_CheckStopScript();
+}
+
+function MPS_CheckStopScript() {
+    if (window.MPS_Context.FileReportDownload && window.MPS_Context.FileBalanceDownload)
+        console.log("StopAppScript");
 }
 
 function MPS_GetSesionID() {

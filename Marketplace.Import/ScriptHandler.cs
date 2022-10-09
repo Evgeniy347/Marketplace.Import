@@ -2,6 +2,7 @@
 using CefSharp.WinForms;
 using Marketplace.Import.Controls;
 using Marketplace.Import.Exceptions;
+using Marketplace.Import.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -167,8 +168,15 @@ namespace Marketplace.Import
                     WatchDog current = _WatchDog;
                     _WatchDog = new WatchDog(() =>
                     {
-                        BrowserForm.Instance.FileWriter.WriteLogAsynk($"WatchDogReset");
-                        RunAsynk(scriptName, true);
+                        if (BrowserForm.CheckIfDevToolsIsOpenAsync().Result)
+                        {
+                            BrowserForm.Instance.FileWriter.WriteLogAsynk($"DevToolsOpen. Disable WatchDogReset");
+                        }
+                        else
+                        {
+                            BrowserForm.Instance.FileWriter.WriteLogAsynk($"WatchDogReset");
+                            RunAsynk(scriptName, true);
+                        }
                     }
                     , _currentScript.WatchDog);
 
@@ -207,6 +215,7 @@ namespace Marketplace.Import
                 BrowserForm.Instance.FileWriter.WriteLogAsynk($"AddScript");
                 string valueStr = File.ReadAllText(_currentScript.FileScript);
                 valueStr = ReplasePasword(valueStr);
+                valueStr = GetJSArgumentValue() + Environment.NewLine + valueStr;
 
                 if (!string.IsNullOrEmpty(AppSetting.CommonScript))
                 {
@@ -263,6 +272,43 @@ namespace Marketplace.Import
                 credentialID = _currentScript.DefaultCredential;
 
             return credentialID;
+        }
+
+
+        public string GetJSArgumentValue()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("MPS_Params = {");
+
+            if (_currentScript != null)
+            {
+                foreach (INIValue valueIni in _currentScript.Section.Values)
+                    stringBuilder.AppendLine($"'{valueIni.Key}': '{valueIni.Value}',");
+            }
+
+            if (AppSetting.ArgsParams != null)
+            {
+                foreach (INIValue valueIni in AppSetting.ArgsParams.DefaulteSection.Values)
+                    stringBuilder.AppendLine($"'{valueIni.Key}': '{valueIni.Value}',");
+            }
+
+            stringBuilder.AppendLine("};");
+
+            return stringBuilder.ToString();
+        }
+
+        public string ReplaceArgumentValue(string value)
+        {
+            string result = value;
+            if (_currentScript != null)
+            {
+                foreach (INIValue valueIni in _currentScript.Section.Values)
+                    result = result.Replace($"{{{valueIni.Key}}}", valueIni.Value);
+            }
+
+            result = AppSetting.ReplaceArgumentValue(result);
+
+            return result;
         }
     }
 }

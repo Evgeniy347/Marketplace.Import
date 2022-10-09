@@ -100,6 +100,7 @@ namespace Marketplace.Import
                 .Replace("{CredentialID}", credentialID)
                 .Replace("{FirstName}", downloadItem.SuggestedFileName);
 
+            fullPath = _scriptHandler.ReplaceArgumentValue(fullPath);
             return fullPath;
         }
 

@@ -91,8 +91,8 @@ namespace Marketplace.Import
                 return _PasswordManager;
             }
         }
-        private static INIReaderHelper _IniSettings;
-        public static INIReaderHelper IniSettings
+        private static INIAdapterHelper _IniSettings;
+        public static INIAdapterHelper IniSettings
         {
             get
             {
@@ -111,12 +111,16 @@ namespace Marketplace.Import
             }
         }
 
-        public static string RunScriptName { get; set; }
+        private static string _RunScriptName;
+        public static string RunScriptName => _RunScriptName;
 
         public static bool RunScript => !string.IsNullOrEmpty(RunScriptName);
 
-        public static string CurrentCredentialID { get; internal set; }
-        public static bool ShowDevelop { get; internal set; }
+        private static string _CurrentCredentialID;
+        public static string CurrentCredentialID => _CurrentCredentialID;
+
+        private static bool _ShowDevelop;
+        public static bool ShowDevelop => _ShowDevelop;
 
         private static void EnsureSettingsLoaded()
         {
@@ -126,7 +130,7 @@ namespace Marketplace.Import
                 {
                     if (!_init)
                     {
-                        _IniSettings = new INIReaderHelper();
+                        _IniSettings = new INIAdapterHelper("Default");
                         string fileScript = FindScriptFile();
                         _RootFolder = Path.GetDirectoryName(fileScript);
                         _IniSettings.OpenFile(fileScript);
@@ -187,6 +191,7 @@ namespace Marketplace.Import
         {
             ScriptSetting scriptSetting = new ScriptSetting()
             {
+                Section = section,
                 FileScript = section["FileScript"],
                 Name = section["Name"],
                 StartUrl = section["StartUrl"],
@@ -236,5 +241,31 @@ namespace Marketplace.Import
                 result = Path.Combine(_RootFolder, result);
             return result;
         }
+
+        private static INIAdapterHelper _argsParams;
+
+        public static INIAdapterHelper ArgsParams => _argsParams;
+
+        internal static void InitArgs(string[] argsParams)
+        {
+            INIAdapterHelper iniAdapter = _argsParams = new INIAdapterHelper();
+            iniAdapter.OpenValue(argsParams);
+            iniAdapter.TryGetValue("ShowDevelop", out _ShowDevelop);
+            iniAdapter.TryGetValue("ScriptName", out _RunScriptName);
+            iniAdapter.TryGetValue("CredentialID", out _CurrentCredentialID);
+        }
+          
+        public static string ReplaceArgumentValue(string value)
+        {
+            string result = value;
+            if (_argsParams != null)
+            {
+                foreach (INIValue valueIni in _argsParams.DefaulteSection.Values)
+                    result = result.Replace($"{{{valueIni.Key}}}", valueIni.Value);
+            }
+
+            return result;
+        }
     }
 }
+

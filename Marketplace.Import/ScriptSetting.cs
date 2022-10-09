@@ -1,7 +1,9 @@
-﻿namespace Marketplace.Import
+﻿using Marketplace.Import.Helpers;
+
+namespace Marketplace.Import
 {
     public class ScriptSetting
-    {
+    { 
         public string FileScript { get; set; }
 
         public string Name { get; set; }
@@ -17,5 +19,6 @@
         public int Attempts { get; set; }
 
         public string DefaultCredential { get; set; }
+        public INISection Section { get; internal set; }
     }
 }

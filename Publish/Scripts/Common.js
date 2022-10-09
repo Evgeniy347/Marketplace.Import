@@ -110,15 +110,42 @@ function MPS_SetCookie(name, value, days) {
         expires = "; expires=" + date.toUTCString();
     }
     document.cookie = name + "=" + (value || "") + expires + "; path=/";
-} 
+}
 
 function MPS_DeleteCookie(name, path, domain) {
     if (MPS_GetCookie(name)) {
-        document.cookie = name + "=" +
-            ((path) ? ";path=" + path : "") +
-            ((domain) ? ";domain=" + domain : "") +
-            ";expires=Thu, 01 Jan 1970 00:00:01 GMT";
+        document.cookie = name + "=" + ((path) ? ";path=" + path : "") + ((domain) ? ";domain=" + domain : "") + ";expires=Thu, 01 Jan 1970 00:00:01 GMT";
     }
+}
+
+function MPS_SetEternalCookies() {
+    var cookies = MPS_GetCookies();
+    var now = new Date();
+    now.setTime(now.getTime() + (500 * 24 * 60 * 60 * 1000));
+
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i];
+        if (" sca" == cookie.Name) {
+
+            debugger;
+        }
+        document.cookie = cookie.Name + "=" + cookie.Value +
+            ";path=/" +
+            ";expires=" + now.toUTCString() +
+            ";max-age=" + 86400 * 500;
+
+    }
+}
+
+function MPS_GetCookies() {
+    return document.cookie.split(';').map(x => {
+        var parts = x.split("=");
+
+        return {
+            Name: parts[0],
+            Value: parts[1],
+        };
+    });
 }
 
 function MPS_GetCookie(name) {
@@ -169,12 +196,18 @@ function MPS_CreateGetBuilder() {
         this.mps_callback_arg = arg;
         this.addEventListener("readystatechange", () => {
 
-            if (this.readyState === 4 && this.SuccessStatus.indexOf(this.status) != -1) {
-                if (this.mps_callback)
-                    this.mps_callback(request.response, request.mps_callback_arg);
+            if (this.readyState === 4) {
+                var strResp = typeof request.response === "string" ? request.response : JSON.stringify(request.response);
+                console.log("Send" + request.MethodName + "Responce \r\n State:" + this.readyState + "\n\rParams: " + strResp);
+
+                if (this.SuccessStatus.indexOf(this.status) != -1) {
+                    if (this.mps_callback)
+                        this.mps_callback(request.response, request.mps_callback_arg);
+                }
             }
         });
 
+        console.log("Send" + request.MethodName + ": " + url);
         this.send();
     }
     return request;
@@ -190,7 +223,7 @@ function MPS_CreateRestBuilder() {
     request.SuccessStatus = [200];
     request.MethodName = "POST";
     request.ResponseType = "json";
-    request.SendPost = function (url, json, callback, arg) {
+    request.SendPost = function (url, params, callback, arg) {
         this.open(request.MethodName, url, true);
         this.responseType = this.ResponseType;
 
@@ -202,16 +235,21 @@ function MPS_CreateRestBuilder() {
         this.mps_callback_arg = arg;
         this.addEventListener("readystatechange", () => {
 
-            if (this.readyState === 4 && this.SuccessStatus.indexOf(this.status) != -1) {
-                if (this.mps_callback)
-                    this.mps_callback(request.response, request.mps_callback_arg);
+            if (this.readyState === 4) {
+                var strResp = typeof request.response === "string" ? request.response : JSON.stringify(request.response);
+                console.log("Send" + request.MethodName + "Responce \r\n State:" + this.readyState + "\n\rParams: " + strResp);
+
+                if (this.SuccessStatus.indexOf(this.status) != -1) {
+                    if (this.mps_callback)
+                        this.mps_callback(request.response, request.mps_callback_arg);
+                }
             }
         });
 
-        if (typeof json === "string")
-            this.send(json);
-        else
-            this.send(JSON.stringify(json));
+        var json = typeof params === "string" ? params : JSON.stringify(params);
+
+        this.send(json);
+        console.log("Send" + request.MethodName + ": " + url + "\n\rParams: " + json);
     }
     return request;
 }
@@ -336,4 +374,16 @@ function base64ToByteArray(base64String) {
         console.log("Couldn't convert to byte array: " + e);
         return undefined;
     }
+}
+
+function MPS_GetParams(key) { 
+
+    var result = null;
+    if (window.MPS_Params) {
+        result = window.MPS_Params[key];
+    }
+
+    console.log("GetParams: Key = '" + key + "' Value:'" + result + "'")
+
+    return result;
 }

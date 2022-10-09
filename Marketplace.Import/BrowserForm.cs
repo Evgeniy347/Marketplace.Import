@@ -44,8 +44,7 @@ namespace Marketplace.Import
 
             browser = new ChromiumWebBrowser("www.google.com");
 
-            string logFileName = GetFileLogName();
-            _fileWriter = new FileWriter(logFileName);
+            _fileWriter = new FileWriter();
 
             browser.Enabled = string.IsNullOrEmpty(AppSetting.RunScriptName);
             disabledToolStripMenuItem.Checked = !browser.Enabled;
@@ -60,7 +59,7 @@ namespace Marketplace.Import
             browser.TitleChanged += OnBrowserTitleChanged;
             browser.AddressChanged += OnBrowserAddressChanged;
             browser.LoadError += OnBrowserLoadError;
-             
+
             DownloadHandler downer = new DownloadHandler(this, _scriptHandler);
             browser.DownloadHandler = downer;
 
@@ -87,16 +86,6 @@ namespace Marketplace.Import
             }
 
             InitTabScript();
-        }
-
-        private static string GetFileLogName()
-        {
-            string filder = AppSetting.LogsFolder;
-            string logFileName = Path.Combine(filder,
-                String.IsNullOrEmpty(AppSetting.RunScriptName) ?
-                $"{DateTime.Now:yyyy.dd.MM HH.mm.ss}.log" :
-                $"{AppSetting.RunScriptName}_{AppSetting.CurrentCredentialID}_{DateTime.Now:yyyy.dd.MM HH.mm.ss}.log");
-            return logFileName;
         }
 
         private void OnBrowserLoadError(object sender, LoadErrorEventArgs e)
@@ -190,7 +179,16 @@ namespace Marketplace.Import
         public void DisplayOutput(string output)
         {
             _fileWriter.WriteLogAsynk(output);
-            this.InvokeOnUiThreadIfRequired(() => outputLabel.Text = output);
+            this.InvokeOnUiThreadIfRequired(() =>
+            {
+                try
+                {
+                    outputLabel.Text = output;
+                }
+                catch
+                { }
+            }
+            );
         }
 
         private void HandleToolStripLayout(object sender, LayoutEventArgs e)
@@ -319,6 +317,7 @@ namespace Marketplace.Import
         {
             this.InvokeOnUiThreadIfRequired(() =>
             {
+
                 disabledToolStripMenuItem.Checked = false;
                 browser.Enabled = !disabledToolStripMenuItem.Checked;
             });
@@ -338,6 +337,15 @@ namespace Marketplace.Import
             _scriptHandler.Stop();
         }
 
+        public static Task<bool> CheckIfDevToolsIsOpenAsync()
+        {
+            return Cef.UIThreadTaskFactory.StartNew(() =>
+            {
+                return Instance.browser.GetBrowserHost().HasDevTools;
+            });
+        }
+
+
         private void toolStripButton1_Click(object sender, EventArgs e)
         {
 
@@ -349,14 +357,20 @@ namespace Marketplace.Import
         }
 
         internal static void CloseForm()
-        { 
+        {
             if (AppSetting.RunScript && !AppSetting.ShowDevelop)
             {
                 Thread thread = new Thread(() =>
                 {
                     DownloadHandler.WaitDownloads();
                     Thread.Sleep(5000);
-                    Instance.InvokeOnUiThreadIfRequired(() => Instance.browser.CloseDevTools());
+                    Cef.UIThreadTaskFactory.StartNew(() =>
+                    {
+                        var host = Instance.browser.GetBrowserHost();
+                        if (host.HasDevTools)
+                            host.CloseDevTools();
+                        host.CloseBrowser(true);
+                    }).Wait();
                     Thread.Sleep(500);
                     Application.Exit();
                 });

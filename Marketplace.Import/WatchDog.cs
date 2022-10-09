@@ -31,7 +31,7 @@ namespace Marketplace.Import
                 DateTime nextReset = _lastReset.AddMilliseconds(_timeout);
 
                 if (nextReset < DateTime.Now)
-                {
+                { 
                     _action.Invoke();
                     return;
                 }

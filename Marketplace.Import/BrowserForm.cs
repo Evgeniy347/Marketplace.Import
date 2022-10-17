@@ -60,7 +60,7 @@ namespace Marketplace.Import
             browser.AddressChanged += OnBrowserAddressChanged;
             browser.LoadError += OnBrowserLoadError;
 
-            DownloadHandler downer = new DownloadHandler(this, _scriptHandler);
+            DownloadHandler downer = new DownloadHandler(_scriptHandler);
             browser.DownloadHandler = downer;
 
             var version = string.Format("Chromium: {0}, CEF: {1}, CefSharp: {2}",
@@ -117,11 +117,6 @@ namespace Marketplace.Import
 
             if (!string.IsNullOrEmpty(args.Message))
             {
-                if (args.Message.StartsWith("Application:Exit"))
-                {
-                    browser.CloseDevTools();
-                    Application.Exit();
-                }
                 if (args.Message.StartsWith("MPS_Redirect"))
                 {
                     int firslSplit = args.Message.IndexOf('=');
@@ -358,22 +353,33 @@ namespace Marketplace.Import
 
         internal static void CloseForm()
         {
+            Instance._fileWriter.WriteLogAsynk($"CloseForm RunScript:{AppSetting.RunScript}{AppSetting.ShowDevelop}");
+
             if (AppSetting.RunScript && !AppSetting.ShowDevelop)
             {
                 Thread thread = new Thread(() =>
                 {
                     DownloadHandler.WaitDownloads();
                     Thread.Sleep(5000);
+
+                    Instance._fileWriter.WriteLogAsynk($"Start CloseDevTools");
                     Cef.UIThreadTaskFactory.StartNew(() =>
                     {
                         var host = Instance.browser.GetBrowserHost();
+                        Instance._fileWriter.WriteLogAsynk($"HasDevTools:{host.HasDevTools}");
                         if (host.HasDevTools)
                             host.CloseDevTools();
-                        host.CloseBrowser(true);
                     }).Wait();
+
+                    Instance._fileWriter.WriteLogAsynk($"End CloseDevTools");
+
                     Thread.Sleep(500);
                     Application.Exit();
-                });
+                })
+                {
+                    IsBackground = true,
+                    Name = "ExitThread",
+                };
 
                 thread.Start();
             }

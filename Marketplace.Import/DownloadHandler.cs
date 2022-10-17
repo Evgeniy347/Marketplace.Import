@@ -20,7 +20,6 @@ namespace Marketplace.Import
 
         public event EventHandler<DownloadItem> OnDownloadUpdatedFired;
 
-        private readonly BrowserForm _mainForm;
         private readonly ScriptHandler _scriptHandler;
         private readonly Queue<IBeforeDownloadCallback> _downloadCallbacks = new Queue<IBeforeDownloadCallback>();
 
@@ -39,10 +38,9 @@ namespace Marketplace.Import
             }
         }
 
-        public DownloadHandler(BrowserForm form, ScriptHandler scriptHandler)
+        public DownloadHandler(ScriptHandler scriptHandler)
         {
             Instance = this;
-            _mainForm = form;
             _scriptHandler = scriptHandler;
         }
 

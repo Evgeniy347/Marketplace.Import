@@ -315,7 +315,7 @@ function MPS_GetElementsFilter(options) {
 }
 
 function MPS_DownloadBase64Data(dataBase64, filename, type) {
-    MPS_PushLog("DownloadBase64Data");
+    MPS_PushLog("DownloadBase64Data " + filename);
     var byteCharacters = atob(dataBase64);
     var byteNumbers = new Array(byteCharacters.length);
     for (let i = 0; i < byteCharacters.length; i++) {
@@ -327,27 +327,29 @@ function MPS_DownloadBase64Data(dataBase64, filename, type) {
 }
 
 function MPS_DownloadData(data, filename, type) {
-    MPS_PushLog("DownloadData");
+    MPS_PushLog("DownloadData " + filename);
     var file = new Blob([data], { type: type });
     MPS_DownloadBlob(file, filename);
 }
 
 function MPS_DownloadBlob(blob, filename) {
-    MPS_PushLog("DownloadBlob");
-
+    MPS_PushLog("DownloadBlob " + filename);
+    debugger;
     if (window.navigator.msSaveOrOpenBlob) // IE10+
         window.navigator.msSaveOrOpenBlob(blob, filename);
     else { // Others
-        var a = document.createElement("a"),
-            url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        var url = URL.createObjectURL(blob);
+
         a.href = url;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
-        setTimeout(function () {
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }, 0);
+
+        //setTimeout(function () {
+        //    document.body.removeChild(a);
+        //    window.URL.revokeObjectURL(url);
+        //}, 0);
     }
 }
 
@@ -376,7 +378,7 @@ function base64ToByteArray(base64String) {
     }
 }
 
-function MPS_GetParams(key) { 
+function MPS_GetParams(key) {
 
     var result = null;
     if (window.MPS_Params) {

@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using CefSharp;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Marketplace.Import
 {
@@ -382,6 +383,71 @@ namespace Marketplace.Import
                 };
 
                 thread.Start();
+            }
+        }
+
+        private void toolStripLabel1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void eternalCookiesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            EternalCookies();
+        }
+
+        private static object _lock = new object();
+        public static void EternalCookies()
+        {
+            return;
+
+            lock (_lock)
+            {
+                List<Cookie> _cookies = new List<Cookie>(1000);
+
+                ICookieManager cookieManager = Cef.GetGlobalCookieManager();
+                cookieManager.VisitAllCookiesAsync().ContinueWith(x =>
+                {
+                    cookieManager.DeleteCookiesAsync().ContinueWith(y =>
+                    {
+                        var t = cookieManager.VisitAllCookiesAsync().Result;
+
+                        Dictionary<Cookie, bool> resSet = new Dictionary<Cookie, bool>();
+                        foreach (var cookie in x.Result)
+                        {
+                            cookie.Expires = DateTime.Now.AddYears(10);
+                            resSet[cookie] = cookieManager.SetCookie("*", cookie);
+                        }
+
+                        var t2 = cookieManager.VisitAllCookiesAsync().Result;
+
+                    });
+                });
+            }
+        }
+
+        private class CookieVisitor : ICookieVisitor
+        {
+            private List<Cookie> _cookies = new List<Cookie>(1000);
+            public Cookie[] Result => _cookies.ToArray();
+
+            private ICookieManager cookieManager;
+
+            public CookieVisitor(ICookieManager cookieManager)
+            {
+                this.cookieManager = cookieManager;
+            }
+
+            public void Dispose()
+            {
+
+            }
+
+            public bool Visit(Cookie cookie, int count, int total, ref bool deleteCookie)
+            {
+                if (cookie.Expires == null || cookie.Expires < DateTime.Now.AddYears(1))
+                    _cookies.Add(cookie);
+                return true;
             }
         }
     }

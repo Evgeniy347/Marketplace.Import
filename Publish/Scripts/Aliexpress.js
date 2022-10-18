@@ -1,29 +1,34 @@
 ﻿
-function MPS_Init() { 
+function MPS_Init() {
 
     if (!window.MPS_Context)
         return;
-      
-    if (location.href.startsWith("https://seller.aliexpress.ru/login")) {  
+
+    if (location.href.startsWith("https://seller.aliexpress.ru/login")) {
         MPS_PushLog("Redirect auth");
         setTimeout(function () { location.href = "https://auth-seller.aliexpress.ru/api/v1/auth"; }, 1000);
     }
-    else if (location.href.startsWith("https://login.aliexpress.ru")) { 
-        setTimeout(MPS_Authorization, 1000);
+    else if (location.href.startsWith("https://login.aliexpress.ru")) {
+        if (!window.document.body.StartAuthorization) {
+            window.document.body.StartAuthorization = true;
+            //MPS_PushLog("Redirect orders");
+            //if (MPS_GetCountLog("Redirect orders") < 10)
+            //    location.href = "https://login.aliexpress.ru";
+            setTimeout(MPS_Authorization, 1000);
+        }
     }
     else if (location.href.startsWith("https://auth-seller.aliexpress.ru/api/v1/auth")) {
-        MPS_PushLog("Redirect orders");
         setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
     }
     else if (location.href.startsWith("https://seller.aliexpress.ru/orders/orders")) {
 
-        setTimeout(function () { 
+        setTimeout(function () {
             if (!window.document.body.StartAuthorization) {
                 window.document.body.StartAuthorization = true;
-                MPS_PushLog("StartCreateExport"); 
+                MPS_PushLog("StartCreateExport");
                 MPS_CreateExport();
             }
-        }, 1000); 
+        }, 1000);
     }
     else {
         //если ничего из вышеперечисленного то вызывает повтроно, возможно будет редирект
@@ -42,7 +47,7 @@ function MPS_CreateExport() {
         date_created_to: endDate.toISOString(),
         timezone: 5
     };
-     
+
     MPS_SetEternalCookies();
 
     contextOperation.CreateExport = {
@@ -54,8 +59,8 @@ function MPS_CreateExport() {
 }
 
 function MPS_CreateExportCallBack(response, contextOperation) {
-     
-    MPS_PushLog("ReqestCreateExportComplited"); 
+
+    MPS_PushLog("ReqestCreateExportComplited");
 
     console.log(response.response);
     contextOperation.CreateExport.Response = response;
@@ -87,8 +92,8 @@ function MPS_CheckStatusExport(contextOperation) {
 function MPS_CheckStatusExportCallBack(response, contextOperation) {
     console.log("MPS_CheckStatusExport");
     console.log(response);
-     
-    MPS_PushLog("MPS_CheckStatusExportCallBack"); 
+
+    MPS_PushLog("MPS_CheckStatusExportCallBack");
 
     contextOperation.CheckStatus.Response = response;
 
@@ -103,8 +108,8 @@ function MPS_CheckStatusExportCallBack(response, contextOperation) {
         //если сервер генерит отчет то проверяем его каждую секунду
         setTimeout(MPS_CheckStatusExport, 3000, contextOperation);
     }
-    else { 
-        MPS_PushLog("FileAliexpressComplited"); 
+    else {
+        MPS_PushLog("FileAliexpressComplited");
         console.log("FileReportUrl:" + order.file_url);
         console.log("StopAppScript");
     }
@@ -121,7 +126,7 @@ function MPS_GetOrder(orders, id) {
 
 
 function MPS_Authorization() {
-     
+
     var login = "{Login}";
     var password = "{Password}";
 
@@ -132,8 +137,8 @@ function MPS_Authorization() {
         setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
         return;
     }
-     
-    MPS_PushLog("FindLoginAndPassorkInput"); 
+
+    MPS_PushLog("FindLoginAndPassorkInput");
 
     var buttonOK = document.querySelector("button[type=submit]");
 
@@ -141,9 +146,12 @@ function MPS_Authorization() {
     document.execCommand('insertText', false, login);
 
     pwdInput.focus();
-    document.execCommand('insertText', false, password); 
-    MPS_PushLog("ClickAutorize");  
+    document.execCommand('insertText', false, password);
+    MPS_PushLog("ClickAutorize");
+
     setTimeout(function () { buttonOK.click() }, 500);
+
+    //document.getElementById("baxia-dialog-content")
 }
 
 MPS_Init();

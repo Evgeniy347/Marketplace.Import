@@ -36,7 +36,8 @@ namespace Marketplace.Import
             var settings = new CefSettings()
             {
                 //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
-                CachePath = Path.Combine(AppSetting.FolderCache)
+                CachePath = Path.Combine(AppSetting.FolderCache),
+                PersistSessionCookies = true,
             };
 
             //Example of setting a command line argument

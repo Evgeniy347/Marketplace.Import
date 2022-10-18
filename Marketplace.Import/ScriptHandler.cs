@@ -82,11 +82,13 @@ namespace Marketplace.Import
         {
             if (_stop)
                 return;
-
+             
             //Дожидаемся загрузки страницы
             bool isLoading = !e.CanReload;
 
             BrowserForm.Instance.FileWriter.WriteLogAsynk($"Address:{_browser.Address} IsLoading:{isLoading}");
+
+            BrowserForm.EternalCookies();
 
             if (_currentScript == null)
                 return;
@@ -109,8 +111,11 @@ namespace Marketplace.Import
             }
         }
 
+
         public void Stop()
         {
+            BrowserForm.EternalCookies();
+
             //_currentScript = null;
             _stop = true;
             _WatchDog?.Dispose();

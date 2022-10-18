@@ -161,6 +161,16 @@ function MPS_SaveContext() {
     }
 }
 
+function MPS_GetCountLog(message) {
+    if (window.MPS_Context) {
+        if (window.MPS_Context.Logs) {
+            var value = window.MPS_Context.Logs[message];
+            return value ? value : 0;
+        }
+    }
+    return null;
+}
+
 function MPS_PushLog(message) {
     if (window.MPS_Context) {
         if (!window.MPS_Context.Logs)

@@ -1,6 +1,6 @@
 ﻿
 if (!Date.prototype.addDays) {
-    Date.prototype.addDays = function(days) {
+    Date.prototype.addDays = function (days) {
         var date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
         return date;
@@ -8,16 +8,15 @@ if (!Date.prototype.addDays) {
 }
 
 if (!Date.prototype.addDays) {
-    Date.prototype.addDays = function(days) {
+    Date.prototype.addDays = function (days) {
         var date = new Date(this.valueOf());
         date.setDate(date.getDate() + days);
         return date;
     };
 }
 
-
 if (!Date.prototype.toStringMPS) {
-    Date.prototype.toStringMPS = function(pattern) {
+    Date.prototype.toStringMPS = function (pattern) {
 
         var result = pattern;
         var d = this;
@@ -129,11 +128,7 @@ function MPS_SetEternalCookies() {
     now.setTime(now.getTime() + (500 * 24 * 60 * 60 * 1000));
 
     for (var i = 0; i < cookies.length; i++) {
-        var cookie = cookies[i];
-        if (" sca" == cookie.Name) {
-
-            debugger;
-        }
+        var cookie = cookies[i]; 
         document.cookie = cookie.Name +
             "=" +
             cookie.Value +
@@ -151,16 +146,22 @@ function MPS_GetCookies() {
         var parts = x.split("=");
 
         return {
-            Name: parts[0],
-            Value: parts[1],
+            Name: parts[0].trim(),
+            Value: parts[1]
         };
     });
 }
 
 function MPS_GetCookie(name) {
-    return document.cookie.split(";").some(c => {
-        return c.trim().startsWith(name + "=");
-    });
+
+    var cookies = MPS_GetCookies();
+
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i];
+
+        if (cookie.Name == name)
+            return cookie.Value;
+    }
 }
 
 function MPS_SaveContext() {
@@ -204,7 +205,7 @@ function MPS_CreateGetBuilder() {
     request.MethodName = "GET";
     request.ResponseType = "json";
 
-    request.SendPost = function(url, callback, arg) {
+    request.SendPost = function (url, callback, arg) {
         this.open(request.MethodName, url, true);
         this.responseType = this.ResponseType;
 
@@ -250,7 +251,7 @@ function MPS_CreateRestBuilder() {
     request.SuccessStatus = [200];
     request.MethodName = "POST";
     request.ResponseType = "json";
-    request.SendPost = function(url, params, callback, arg) {
+    request.SendPost = function (url, params, callback, arg) {
         this.open(request.MethodName, url, true);
         this.responseType = this.ResponseType;
 
@@ -321,10 +322,10 @@ function MPS_GetElementsFilter(options) {
     var elements = Array.from(container.querySelectorAll(options.selector));
 
     if (options.classNameContaince)
-        elements = elements.filter(function(x) { return x.className.indexOf(options.classNameContaince) != -1; });
+        elements = elements.filter(function (x) { return x.className.indexOf(options.classNameContaince) != -1; });
 
     if (options.innerTextContaince)
-        elements = elements.filter(function(x) { return x.innerText.indexOf(options.innerTextContaince) != -1; });
+        elements = elements.filter(function (x) { return x.innerText.indexOf(options.innerTextContaince) != -1; });
 
     if (options.filter)
         elements = elements.filter(options.filter);
@@ -367,7 +368,7 @@ function MPS_DownloadData(data, filename, type) {
 
 function MPS_DownloadBlob(blob, filename) {
     MPS_PushLog("DownloadBlob " + filename);
-    debugger;
+
     if (window.navigator.msSaveOrOpenBlob) // IE10+
         window.navigator.msSaveOrOpenBlob(blob, filename);
     else { // Others
@@ -377,12 +378,7 @@ function MPS_DownloadBlob(blob, filename) {
         a.href = url;
         a.download = filename;
         document.body.appendChild(a);
-        a.click();
-
-        //setTimeout(function () {
-        //    document.body.removeChild(a);
-        //    window.URL.revokeObjectURL(url);
-        //}, 0);
+        a.click(); 
     }
 }
 
@@ -421,4 +417,16 @@ function MPS_GetParams(key) {
     console.log("GetParams: Key = '" + key + "' Value:'" + result + "'");
 
     return result;
+}
+
+function MPS_TrimChar(string, charToRemove) {
+    while (string.charAt(0) == charToRemove) {
+        string = string.substring(1);
+    }
+
+    while (string.charAt(string.length - 1) == charToRemove) {
+        string = string.substring(0, string.length - 1);
+    }
+
+    return string;
 }

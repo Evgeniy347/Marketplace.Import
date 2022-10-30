@@ -50,7 +50,7 @@ function MPS_CreateExport() {
 
 function MPS_CreateExportReport() {
     MPS_PushLog("StartCreateOrderReport");
-    debugger;
+
     var url = "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/generate";
     var endDate = new Date();
     var startDate = endDate.addDays(-40); // 40 дней от текущей даты

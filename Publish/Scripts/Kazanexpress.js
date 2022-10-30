@@ -24,8 +24,7 @@ function MPS_GetToken() {
         encodeURIComponent(login) +
         "&password=" +
         encodeURIComponent(password);
-
-    debugger;
+     
     var builder = MPS_CreateRestBuilder();
     builder.AddRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     builder.AddRequestHeader("Authorization", "Basic a2F6YW5leHByZXNzOnNlY3JldEtleQ==");

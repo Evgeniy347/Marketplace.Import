@@ -18,7 +18,7 @@ function MPS_Init() {
         }
     } else {
         //если ничего из вышеперечисленного то вызывает повтроно, возможно будет редирект
-        setTimeout(MPS_Init, 100);
+        setTimeout(MPS_Init, 1000);
     }
 }
 

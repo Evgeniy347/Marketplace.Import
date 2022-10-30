@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{24DB
 		Publish\Scripts\Common.js = Publish\Scripts\Common.js
 		Publish\Scripts\Kazanexpress.js = Publish\Scripts\Kazanexpress.js
 		Publish\Scripts\lamoda.js = Publish\Scripts\lamoda.js
+		Publish\Scripts\Ozon.js = Publish\Scripts\Ozon.js
 		Publish\Scripts\sbermegamarket.js = Publish\Scripts\sbermegamarket.js
 		Publish\Scripts\walberes.js = Publish\Scripts\walberes.js
 	EndProjectSection

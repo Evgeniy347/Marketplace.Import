@@ -6,31 +6,25 @@ function MPS_Init() {
 
     if (location.href.startsWith("https://seller.aliexpress.ru/login")) {
         MPS_PushLog("Redirect auth");
-        setTimeout(function () { location.href = "https://auth-seller.aliexpress.ru/api/v1/auth"; }, 1000);
-    }
-    else if (location.href.startsWith("https://login.aliexpress.ru")) {
+        setTimeout(function() { location.href = "https://auth-seller.aliexpress.ru/api/v1/auth"; }, 1000);
+    } else if (location.href.startsWith("https://login.aliexpress.ru")) {
         if (!window.document.body.StartAuthorization) {
             window.document.body.StartAuthorization = true;
-            //MPS_PushLog("Redirect orders");
-            //if (MPS_GetCountLog("Redirect orders") < 10)
-            //    location.href = "https://login.aliexpress.ru";
             setTimeout(MPS_Authorization, 1000);
         }
-    }
-    else if (location.href.startsWith("https://auth-seller.aliexpress.ru/api/v1/auth")) {
-        setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
-    }
-    else if (location.href.startsWith("https://seller.aliexpress.ru/orders/orders")) {
+    } else if (location.href.startsWith("https://auth-seller.aliexpress.ru/api/v1/auth")) {
+        setTimeout(function() { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
+    } else if (location.href.startsWith("https://seller.aliexpress.ru/orders/orders")) {
 
-        setTimeout(function () {
-            if (!window.document.body.StartAuthorization) {
-                window.document.body.StartAuthorization = true;
-                MPS_PushLog("StartCreateExport");
-                MPS_CreateExport();
-            }
-        }, 1000);
-    }
-    else {
+        setTimeout(function() {
+                if (!window.document.body.StartAuthorization) {
+                    window.document.body.StartAuthorization = true;
+                    MPS_PushLog("StartCreateExport");
+                    MPS_CreateExport();
+                }
+            },
+            1000);
+    } else {
         //если ничего из вышеперечисленного то вызывает повтроно, возможно будет редирект
         setTimeout(MPS_Init, 100);
     }
@@ -73,7 +67,7 @@ function MPS_CreateExportCallBack(response, contextOperation) {
 function MPS_CheckStatusExport(contextOperation) {
 
     contextOperation = contextOperation ? contextOperation : {};
-    var request = new XMLHttpRequest();
+
     var url = "https://seller.aliexpress.ru/api/v1/order-export/get-export-list";
     var params =
     {
@@ -81,8 +75,9 @@ function MPS_CheckStatusExport(contextOperation) {
         page_size: 5,
         order_export_statuses: ["Created", "Finished", "InProgress"]
     };
+
     contextOperation.CheckStatus = {
-        Request: params,
+        Request: params
     };
 
     var request = MPS_CreateRestBuilder();
@@ -107,8 +102,7 @@ function MPS_CheckStatusExportCallBack(response, contextOperation) {
     if (order.status != "Finished") {
         //если сервер генерит отчет то проверяем его каждую секунду
         setTimeout(MPS_CheckStatusExport, 3000, contextOperation);
-    }
-    else {
+    } else {
         MPS_PushLog("FileAliexpressComplited");
         console.log("FileReportUrl:" + order.file_url);
         console.log("StopAppScript");
@@ -134,7 +128,7 @@ function MPS_Authorization() {
     var pwdInput = document.querySelector("#password");
 
     if (!loginInput || !pwdInput) {
-        setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
+        setTimeout(function() { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
         return;
     }
 
@@ -143,13 +137,13 @@ function MPS_Authorization() {
     var buttonOK = document.querySelector("button[type=submit]");
 
     loginInput.focus();
-    document.execCommand('insertText', false, login);
+    document.execCommand("insertText", false, login);
 
     pwdInput.focus();
-    document.execCommand('insertText', false, password);
+    document.execCommand("insertText", false, password);
     MPS_PushLog("ClickAutorize");
 
-    setTimeout(function () { buttonOK.click() }, 500);
+    setTimeout(function() { buttonOK.click() }, 500);
 
     //document.getElementById("baxia-dialog-content")
 }

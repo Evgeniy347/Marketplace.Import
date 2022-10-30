@@ -12,19 +12,16 @@ function MPS_Init() {
             //Проходим авторизацию 
             setTimeout(MPS_Authorization, 1000);
         }
-    }
-    else if (location.href.startsWith("https://partner.sbermegamarket.ru/home")) {
+    } else if (location.href.startsWith("https://partner.sbermegamarket.ru/home")) {
         MPS_PushLog("RedirectRequest");
-        setTimeout(function () { location.href = "https://partner.sbermegamarket.ru/reports/requests"; }, 1000);
-    }
-    else if (location.href.startsWith("https://partner.sbermegamarket.ru/reports/requests")) {
+        setTimeout(function() { location.href = "https://partner.sbermegamarket.ru/reports/requests"; }, 1000);
+    } else if (location.href.startsWith("https://partner.sbermegamarket.ru/reports/requests")) {
         if (!window.document.body.StartCreateExport) {
             window.document.body.StartCreateExport = true;
             MPS_PushLog("StartCreateExport");
             MPS_CreateExport();
         }
-    }
-    else {
+    } else {
         //если ничего из вышеперечисленного то вызывает повтроно, возможно будет редирект
         setTimeout(MPS_Init, 100);
     }
@@ -122,7 +119,7 @@ function MPS_SelectMerchant() {
             merchantId: marketID,
             sessionId: window.MPS_Context.sessionId
         }
-    }
+    };
 
     MPS_PushLog("ReqestSelectMerchant");
 
@@ -165,7 +162,7 @@ function MPS_CheckStatusExport() {
             sort: "requestDate",
             sessionId: window.MPS_Context.sessionId,
         }
-    }
+    };
 
     var request = MPS_CreateRestBuilder();
     request.SendPost(url, params, MPS_CheckStatusExportCallBack);
@@ -182,14 +179,17 @@ function MPS_CheckStatusExportCallBack(responce) {
     if (!order.isCanDownload) {
         //если сервер генерит отчет то проверяем его
         setTimeout(MPS_CheckStatusExport, 3000);
-    }
-    else {
+    } else {
         MPS_PushLog("FileExportComplited");
-        var url = "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/download?reportTaskId=" + order.reportTaskId + "&sessionId=" + window.MPS_Context.sessionId;
+        var url =
+            "https://partner.sbermegamarket.ru/api/market/v1/reportService/operationalReport/download?reportTaskId=" +
+                order.reportTaskId +
+                "&sessionId=" +
+                window.MPS_Context.sessionId;
 
         var request = MPS_CreateGetBuilder();
         request.ResponseType = "arraybuffer";
-        request.SendPost(url, MPS_ReportExportDonloadCallback); 
+        request.SendPost(url, MPS_ReportExportDonloadCallback);
     }
 }
 
@@ -253,13 +253,13 @@ function MPS_Authorization() {
     var buttonOK = document.querySelector(".auth-form__submit-btn");
 
     loginInput.focus();
-    document.execCommand('insertText', false, login);
+    document.execCommand("insertText", false, login);
 
     pwdInput.focus();
-    document.execCommand('insertText', false, password);
+    document.execCommand("insertText", false, password);
 
     MPS_PushLog("ClickAutorize");
-    setTimeout(function () { buttonOK.click() }, 500);
+    setTimeout(function() { buttonOK.click() }, 500);
 }
 
 MPS_Init();

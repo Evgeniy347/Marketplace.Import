@@ -4,13 +4,14 @@ function MPS_Init() {
     if (!window.MPS_Context)
         return;
 
-    setTimeout(function () {
-        if (!window.document.body.StartAuthorization) {
-            window.document.body.StartAuthorization = true;
-            MPS_PushLog("StartAuthorizationKazanexpress");
-            MPS_GetToken();
-        }
-    }, 3000);
+    setTimeout(function() {
+            if (!window.document.body.StartAuthorization) {
+                window.document.body.StartAuthorization = true;
+                MPS_PushLog("StartAuthorizationKazanexpress");
+                MPS_GetToken();
+            }
+        },
+        3000);
 }
 
 function MPS_GetToken() {
@@ -19,7 +20,10 @@ function MPS_GetToken() {
     var password = "{Password}";
 
     var url = "https://api.business.kazanexpress.ru/api/oauth/token";
-    var request = "grant_type=password&username=" + encodeURIComponent(login) + "&password=" + encodeURIComponent(password);
+    var request = "grant_type=password&username=" +
+        encodeURIComponent(login) +
+        "&password=" +
+        encodeURIComponent(password);
 
     debugger;
     var builder = MPS_CreateRestBuilder();
@@ -43,8 +47,10 @@ function MPS_GetTokenCallBack(responce) {
         "size=1073741824" +
         "&page=0" +
         "&group=false" +
-        "&dateFrom=" + dateFrom +
-        "&dateTo=" + dateTo;
+        "&dateFrom=" +
+        dateFrom +
+        "&dateTo=" +
+        dateTo;
 
     var builder = MPS_CreateGetBuilder();
     builder.AddRequestHeader("Accept", "*/*");

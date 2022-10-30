@@ -4,13 +4,14 @@ function MPS_Init() {
     if (!window.MPS_Context)
         return;
 
-    setTimeout(function () {
-        if (!window.document.body.StartAuthorization) {
-            window.document.body.StartAuthorization = true;
-            MPS_PushLog("StartAuthorizationLamoda");
-            MPS_GetToken();
-        }
-    }, 1000);
+    setTimeout(function() {
+            if (!window.document.body.StartAuthorization) {
+                window.document.body.StartAuthorization = true;
+                MPS_PushLog("StartAuthorizationLamoda");
+                MPS_GetToken();
+            }
+        },
+        1000);
 }
 
 function MPS_GetToken() {
@@ -20,8 +21,10 @@ function MPS_GetToken() {
 
     var url = "https://partner.lamoda.ru/api/token";
     var request = {
-        "grant_type": "password", "username": login, "password": password
-    }
+        "grant_type": "password",
+        "username": login,
+        "password": password
+    };
 
     var builder = MPS_CreateRestBuilder();
     builder.SendPost(url, request, MPS_GetTokenCallBack);
@@ -92,6 +95,6 @@ function MPS_DownloadExportCallback(responce, params) {
 
     MPS_DownloadData(responce, "report.csv", "application/octet-stream");
     console.log("StopAppScript");
-} 
+}
 
 MPS_Init();

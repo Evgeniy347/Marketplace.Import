@@ -2,11 +2,12 @@
 function MPS_Init() {
     console.log("MPS_Init");
 
-    if (!window.MPS_Context)
+    if (!window.MPS_Context) {
+        console.log("Close: not MPS_Context"); 
         return;
+    }
 
     if (location.href.startsWith("https://seller.ozon.ru/app/registration/signin")) {
-        //Ничего не делаем, если попали сюда то ждем аутентификацию
         MPS_PushLog("StartAuth");
         console.log("EnableBrowser");
     } else if (location.href.startsWith("https://seller.ozon.ru/app/analytics/fulfillment-reports/operation-orders-fbo")) {
@@ -14,10 +15,12 @@ function MPS_Init() {
             window.document.body.StartAuthorization = true;
             console.log("DisableBrowser");
 
-            setTimeout(function () { MPS_CreateExport(); }, 1000);
+            setTimeout(function() { MPS_CreateExport(); }, 1000);
+        } else { 
+            console.log("Close: Exist StartAuthorization"); 
         }
     } else {
-        //если ничего из вышеперечисленного то вызывает повтроно, возможно будет редирект
+        console.log("setTimeout MPS_Init"); 
         setTimeout(MPS_Init, 1000);
     }
 }

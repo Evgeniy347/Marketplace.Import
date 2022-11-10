@@ -1,4 +1,5 @@
-﻿using Marketplace.Import.Helpers;
+﻿using CefSharp.DevTools.IndexedDB;
+using Marketplace.Import.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -22,6 +23,15 @@ namespace Marketplace.Import
             {
                 EnsureSettingsLoaded();
                 return _RootFolder;
+            }
+        }
+        private static int _DeleteLogsDays;
+        public static int DeleteLogsDays
+        {
+            get
+            {
+                EnsureSettingsLoaded();
+                return _DeleteLogsDays;
             }
         }
 
@@ -140,6 +150,8 @@ namespace Marketplace.Import
                         _CommonScript = GetSettingPath("CommonScript");
                         string cryptDataFile = GetSettingPath("FilePassword", "passwordStorage.csv");
                         _PasswordManager = new PasswordManager(cryptDataFile);
+                        if (_IniSettings.TryGetValue("DeleteLogsDays", out _DeleteLogsDays))
+                            _DeleteLogsDays = 14;
 
                         List<INISection> sections = _IniSettings.GetSections("Script");
                         _Scripts = sections.Select(Convert).ToArray();
@@ -254,7 +266,7 @@ namespace Marketplace.Import
             iniAdapter.TryGetValue("ScriptName", out _RunScriptName);
             iniAdapter.TryGetValue("CredentialID", out _CurrentCredentialID);
         }
-          
+
         public static string ReplaceArgumentValue(string value)
         {
             string result = value;

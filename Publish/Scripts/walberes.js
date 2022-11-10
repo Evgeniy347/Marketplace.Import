@@ -68,7 +68,7 @@ function MPS_CreateWeeklydynamicsExport() {
 
     var url = "https://seller.wildberries.ru/ns/weeklydynamics/analytics-back/api/v1/weekly-report-table-excel";
 
-    var dateTo = new Date();
+    var dateTo = new Date().addDays(1);
     var dateFrom = dateTo.addDays(-40); // 40 дней от текущей даты
 
     var params = {

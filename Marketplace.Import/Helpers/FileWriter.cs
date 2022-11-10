@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Marketplace.Import.Helpers
 {
@@ -19,6 +21,7 @@ namespace Marketplace.Import.Helpers
                 IsBackground = true,
                 Name = "FileWriter",
             };
+
             string folder = Path.GetDirectoryName(_fileName);
 
             if (!Directory.Exists(folder))
@@ -35,17 +38,42 @@ namespace Marketplace.Import.Helpers
 
         private void WorkerThread()
         {
+            Task.Run(RemoveLogs);
+
             while (true)
             {
                 string line = _values.Take();
                 File.AppendAllLines(_fileName, new string[] { line });
             }
         }
+
+        private void RemoveLogs()
+        {
+            string[] files = Directory.GetFiles(AppSetting.LogsFolder, "*.log");
+            if (AppSetting.DeleteLogsDays > 0)
+            {
+                DateTime dateDelete = DateTime.Now.AddDays(-AppSetting.DeleteLogsDays);
+                string[] filesDelete = files.Where(x => File.GetCreationTime(x) < dateDelete).ToArray();
+
+                foreach (string file in filesDelete)
+                {
+                    try
+                    {
+                        _values.Add($"Удаляем файл лога '{file}'");
+                        File.Delete(file);
+                    }
+                    catch (Exception e)
+                    {
+                        _values.Add($"Ошибка при удалении файла '{file}' '{e}'");
+                    }
+                }
+            }
+        }
+
         private static string GetFileLogName()
         {
-            string filder = AppSetting.LogsFolder;
-            string logFileName = Path.Combine(filder,
-                String.IsNullOrEmpty(AppSetting.RunScriptName) ?
+            string logFileName = Path.Combine(AppSetting.LogsFolder,
+                string.IsNullOrEmpty(AppSetting.RunScriptName) ?
                 $"{DateTime.Now:yyyy.dd.MM HH.mm.ss.fff}.log" :
                 $"{AppSetting.RunScriptName}_{AppSetting.CurrentCredentialID}_{DateTime.Now:yyyy.dd.MM HH.mm.ss.fff}.log");
             return logFileName;

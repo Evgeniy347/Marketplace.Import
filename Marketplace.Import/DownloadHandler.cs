@@ -21,7 +21,7 @@ namespace Marketplace.Import
         public event EventHandler<DownloadItem> OnDownloadUpdatedFired;
 
         private readonly ScriptHandler _scriptHandler;
-        private readonly Queue<IBeforeDownloadCallback> _downloadCallbacks = new Queue<IBeforeDownloadCallback>();
+        private readonly Queue<DownloadItem> _downloadCallbacks = new Queue<DownloadItem>();
 
         public static DownloadHandler Instance { get; private set; }
 
@@ -29,12 +29,9 @@ namespace Marketplace.Import
         {
             while (Instance._downloadCallbacks.Count > 0)
             {
-                IBeforeDownloadCallback callback = Instance._downloadCallbacks.Dequeue();
-                if (!callback.IsDisposed)
-                {
-                    Instance._downloadCallbacks.Enqueue(callback);
+                DownloadItem item = Instance._downloadCallbacks.Dequeue();
+                while (!item.IsCancelled || !item.IsComplete)
                     Thread.Sleep(500);
-                }
             }
         }
 
@@ -69,7 +66,7 @@ namespace Marketplace.Import
                             File.Delete(downloadItem.FullPath);
 
                         callback.Continue(fullPath, false);
-                        _downloadCallbacks.Enqueue(callback);
+                        _downloadCallbacks.Enqueue(downloadItem);
                     }
                     catch (Exception ex)
                     {
@@ -115,6 +112,5 @@ namespace Marketplace.Import
         {
             return true;
         }
-
     }
 }

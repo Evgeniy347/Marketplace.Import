@@ -38,13 +38,6 @@ function MPS_CreateExportReport() {
     var dateTo = new Date();
     var dateFrom = dateTo.addDays(-40); // 40 дней от текущей даты
 
-    //var params = {
-    //    "company_id": MPS_GetCookie("contentId"),
-    //    "processed_at_from": dateFrom.toStringMPS("yyyy-MM-ddT00:00:00Z"),
-    //    "processed_at_to": dateTo.toStringMPS("yyyy-MM-ddT23:59:59Z"),
-    //    "status_alias": ["awaiting_packaging", "awaiting_deliver", "delivering", "delivered", "cancelled"]
-    //};
-
     var params = {
         "filter": {
             "processed_at_from": dateFrom.toStringMPS("yyyy-MM-ddT00:00:00Z"),
@@ -70,7 +63,6 @@ function MPS_ReportStatus(code) {
     MPS_PushLog("MPS_ReportStatus");
 
     var url = "https://seller.ozon.ru/api/site/report-service/report/status";
-
     var request = MPS_CreateRestBuilder();
 
     request.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
@@ -82,7 +74,14 @@ function MPS_ReportStatus(code) {
 function MPS_ReportStatusCallback(parameters, code) {
     MPS_PushLog("MPS_ReportStatusCallback");
 
-    if (parameters.status == "processing" && parameters.error_code == 0) {
+    if (parameters.status == "failed") { 
+        console.log("status failed");
+        console.log("StopAppScript");
+    }
+     
+    if ((parameters.status == "processing" ||
+        parameters.status == "waiting") &&
+        parameters.error_code == 0) {
         setTimeout(MPS_ReportStatus, 1000, code);
     } else {
         MPS_GetList(code);
@@ -104,17 +103,19 @@ function MPS_GetList(code) {
     request.SendPost(url, params, MPS_GetListCallback);
 }
 
-
 function MPS_GetGraphs() {
     MPS_PushLog("MPS_GetGraphs");
     var url = "https://seller.ozon.ru/api/site/seller-analytics/data/v1/xlsx";
+
+    var dateTo = new Date();
+    var dateFrom = dateTo.addDays(-40); // 40 дней от текущей даты
 
     var params = {
         "filters": [],
         "metrics": ["ordered_units", "session_view", "session_view_pdp", "conv_tocart_pdp", "revenue", "cancellations", "returns", "position_category"],
         "dimensions": ["category3", "sku", "day", "modelID"],
-        "date_from": "2022-10-14",
-        "date_to": "2022-11-13",
+        "date_from": dateFrom.toStringMPS("yyyy-MM-dd"),
+        "date_to": dateTo.toStringMPS("yyyy-MM-dd"),
         "is_action": false
     };
 
@@ -128,8 +129,7 @@ function MPS_GetGraphs() {
 
 
 function MPS_GetGraphsCallback(responce) {
-
-    MPS_PushLog("MPS_DownloadFileCallback");
+    MPS_PushLog("MPS_GetGraphsCallback");
     MPS_DownloadData(responce, "graphs.xlsx", "application/octet-stream");
     window.MPS_Context.DownloadGraphs = true;
 

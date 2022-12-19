@@ -6,15 +6,21 @@ function MPS_Init() {
         return;
 
     if (location.href.startsWith("https://seller.wildberries.ru/login")) {
-        //Ничего не делаем, если попали сюда то ждем аутентификацию
         MPS_PushLog("StartAuth");
-        console.log("EnableBrowser");
+
+        if ("{ShowDevelop}" == "False") {
+            console.log("Ждем аутентификацию");
+        }
+        else { 
+            console.log("Нужна аутентификация, закрываем скрипт");
+            console.log("StopAppScript");
+        }
+
     } else if (location.href.startsWith("https://seller.wildberries.ru/analytics")) {
         if (!window.document.body.StartAuthorization) {
             window.document.body.StartAuthorization = true;
             console.log("DisableBrowser");
-
-            setTimeout(function() { MPS_CreateExport(); }, 1000);
+            setTimeout(function () { MPS_CreateExport(); }, 1000);
         }
     } else {
         //если ничего из вышеперечисленного то вызывает повтроно, возможно будет редирект
@@ -30,8 +36,8 @@ function MPS_CreateExport() {
         MPS_SetCookie("x-supplier-id-external", supplierid);
     }
 
-    setTimeout(function() { MPS_CreateConsolidatedExport(); }, 1000);
-    setTimeout(function() { MPS_CreateWeeklydynamicsExport(); }, 1500);
+    setTimeout(function () { MPS_CreateConsolidatedExport(); }, 1000);
+    setTimeout(function () { MPS_CreateWeeklydynamicsExport(); }, 1500);
 }
 
 function MPS_CreateConsolidatedExport() {

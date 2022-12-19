@@ -9,8 +9,10 @@ namespace Marketplace.Import.Helpers
 {
     public class FileWriter
     {
+        private volatile object _lock = new object();
         private readonly Thread _thread;
         private readonly string _fileName;
+        private bool _stop;
         private readonly BlockingCollection<string> _values = new BlockingCollection<string>();
 
         public FileWriter()
@@ -35,6 +37,17 @@ namespace Marketplace.Import.Helpers
             _values.Add($"Date:{DateTime.Now} {item}");
         }
 
+        public void Stop()
+        {
+            lock (_lock)
+            {
+                _stop = true;
+                WriteLogAsynk("StopLog");
+                _values.Add($"");
+            }
+            _thread.Join();
+        }
+
 
         private void WorkerThread()
         {
@@ -43,7 +56,12 @@ namespace Marketplace.Import.Helpers
             while (true)
             {
                 string line = _values.Take();
-                File.AppendAllLines(_fileName, new string[] { line });
+                lock (_lock)
+                {
+                    File.AppendAllLines(_fileName, new string[] { line });
+                    if (_stop && string.IsNullOrEmpty(line))
+                        return;
+                }
             }
         }
 
@@ -78,6 +96,5 @@ namespace Marketplace.Import.Helpers
                 $"{AppSetting.RunScriptName}_{AppSetting.CurrentCredentialID}_{DateTime.Now:yyyy.dd.MM HH.mm.ss.fff}.log");
             return logFileName;
         }
-
     }
 }

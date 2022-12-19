@@ -6,23 +6,23 @@ function MPS_Init() {
 
     if (location.href.startsWith("https://seller.aliexpress.ru/login")) {
         MPS_PushLog("Redirect auth");
-        setTimeout(function() { location.href = "https://auth-seller.aliexpress.ru/api/v1/auth"; }, 1000);
+        setTimeout(function () { location.href = "https://auth-seller.aliexpress.ru/api/v1/auth"; }, 1000);
     } else if (location.href.startsWith("https://login.aliexpress.ru")) {
         if (!window.document.body.StartAuthorization) {
             window.document.body.StartAuthorization = true;
             setTimeout(MPS_Authorization, 1000);
         }
     } else if (location.href.startsWith("https://auth-seller.aliexpress.ru/api/v1/auth")) {
-        setTimeout(function() { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
+        setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
     } else if (location.href.startsWith("https://seller.aliexpress.ru/orders/orders")) {
 
-        setTimeout(function() {
-                if (!window.document.body.StartAuthorization) {
-                    window.document.body.StartAuthorization = true;
-                    MPS_PushLog("StartCreateExport");
-                    MPS_CreateExport();
-                }
-            },
+        setTimeout(function () {
+            if (!window.document.body.StartAuthorization) {
+                window.document.body.StartAuthorization = true;
+                MPS_PushLog("StartCreateExport");
+                MPS_CreateExport();
+            }
+        },
             1000);
     } else {
         //если ничего из вышеперечисленного то вызывает повтроно, возможно будет редирект
@@ -128,7 +128,7 @@ function MPS_Authorization() {
     var pwdInput = document.querySelector("#password");
 
     if (!loginInput || !pwdInput) {
-        setTimeout(function() { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
+        setTimeout(function () { location.href = "https://seller.aliexpress.ru/orders/orders"; }, 1000);
         return;
     }
 
@@ -143,9 +143,19 @@ function MPS_Authorization() {
     document.execCommand("insertText", false, password);
     MPS_PushLog("ClickAutorize");
 
-    setTimeout(function() { buttonOK.click() }, 500);
+    setTimeout(function () {
 
-    //document.getElementById("baxia-dialog-content")
+        buttonOK.click();
+
+        setTimeout(function () {
+            var el = document.getElementById("baxia-dialog-content");
+            if (el) {
+                console.log("Необходим ввод капчи. Закрываем страницу.");
+                console.log("StopAppScript");
+            }
+        }, 3000);
+
+    }, 500);
 }
 
 MPS_Init();

@@ -3,9 +3,12 @@
 // Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 using CefSharp;
+using Marketplace.Import.Helpers;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -21,24 +24,34 @@ namespace Marketplace.Import
         public event EventHandler<DownloadItem> OnDownloadUpdatedFired;
 
         private readonly ScriptHandler _scriptHandler;
-        private readonly Queue<DownloadItem> _downloadCallbacks = new Queue<DownloadItem>();
+        private readonly FileWriter _fileWriter;
+        private readonly ConcurrentDictionary<string, DownloadItem> _downloadCallbacks = new ConcurrentDictionary<string, DownloadItem>();
 
         public static DownloadHandler Instance { get; private set; }
 
         public static void WaitDownloads()
         {
-            while (Instance._downloadCallbacks.Count > 0)
+            while (true)
             {
-                DownloadItem item = Instance._downloadCallbacks.Dequeue();
-                while (!item.IsCancelled || !item.IsComplete)
-                    Thread.Sleep(500);
+                int count = Instance._downloadCallbacks.Values
+                    .SkipWhile(x => x.IsComplete || x.IsCancelled)
+                    .Count();
+
+                Instance._fileWriter.WriteLogAsynk($"WaitDownloads:{count}");
+                if (count == 0)
+                    break;
+
+                Thread.Sleep(1000);
             }
+
+            Instance._fileWriter.WriteLogAsynk($"WaitDownloads:OK");
         }
 
-        public DownloadHandler(ScriptHandler scriptHandler)
+        public DownloadHandler(ScriptHandler scriptHandler, FileWriter fileWriter)
         {
             Instance = this;
             _scriptHandler = scriptHandler;
+            _fileWriter = fileWriter;
         }
 
         public void OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
@@ -65,12 +78,13 @@ namespace Marketplace.Import
                         if (File.Exists(downloadItem.FullPath))
                             File.Delete(downloadItem.FullPath);
 
+                        _fileWriter.WriteLogAsynk("OnBeforeDownload fullPath:{}");
                         callback.Continue(fullPath, false);
-                        _downloadCallbacks.Enqueue(downloadItem);
+                        _downloadCallbacks[downloadItem.OriginalUrl] = downloadItem;
                     }
                     catch (Exception ex)
                     {
-                        BrowserForm.Instance.FileWriter.WriteLogAsynk(ex.ToString());
+                        _fileWriter.WriteLogAsynk(ex.ToString());
                     }
                 }
             }
@@ -81,7 +95,7 @@ namespace Marketplace.Import
             string fullPath = _scriptHandler?.CurrentScript?.ReportFile;
             if (string.IsNullOrEmpty(fullPath))
             {
-                BrowserForm.Instance.FileWriter.WriteLogAsynk("Не задано имя файла или произошла ошибка при определении имени");
+                _fileWriter.WriteLogAsynk("Не задано имя файла или произошла ошибка при определении имени");
                 Uri uri = new Uri(downloadItem.OriginalUrl);
                 string fileName = downloadItem.SuggestedFileName;
                 if (string.IsNullOrEmpty(fileName))
@@ -106,6 +120,8 @@ namespace Marketplace.Import
             {
                 handler(this, downloadItem);
             }
+
+            _downloadCallbacks[downloadItem.OriginalUrl] = downloadItem;
         }
 
         public bool CanDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, string url, string requestMethod)

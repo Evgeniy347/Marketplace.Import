@@ -61,7 +61,7 @@ namespace Marketplace.Import
             browser.AddressChanged += OnBrowserAddressChanged;
             browser.LoadError += OnBrowserLoadError;
 
-            DownloadHandler downer = new DownloadHandler(_scriptHandler);
+            DownloadHandler downer = new DownloadHandler(_scriptHandler, _fileWriter);
             browser.DownloadHandler = downer;
 
             var version = string.Format("Chromium: {0}, CEF: {1}, CefSharp: {2}",
@@ -211,14 +211,9 @@ namespace Marketplace.Import
         }
 
         private void ExitMenuItemClick(object sender, EventArgs e)
-        {
-            if (browser.IsDisposed)
-                return;
-
-            browser.CloseDevTools();
-            browser.Dispose();
-            Cef.Shutdown();
-            Close();
+        { 
+            Instance._fileWriter.WriteLogAsynk($"ExitMenuItemClick"); 
+            RunExitThread();
         }
 
         private void GoButtonClick(object sender, EventArgs e)
@@ -356,99 +351,42 @@ namespace Marketplace.Import
         {
             Instance._fileWriter.WriteLogAsynk($"CloseForm RunScript:{AppSetting.RunScript}{AppSetting.ShowDevelop}");
 
-            if (AppSetting.RunScript && !AppSetting.ShowDevelop)
+            if (AppSetting.RunScript && !AppSetting.ShowDevelop) 
+                RunExitThread();
+        }
+
+        public static void RunExitThread()
+        {
+            Thread thread = new Thread(() =>
             {
-                Thread thread = new Thread(() =>
+                DownloadHandler.WaitDownloads();
+
+                Instance._fileWriter.WriteLogAsynk($"Start CloseDevTools");
+                Cef.UIThreadTaskFactory.StartNew(() =>
                 {
-                    DownloadHandler.WaitDownloads();
-                    Thread.Sleep(5000);
+                    var host = Instance.browser.GetBrowserHost();
+                    Instance._fileWriter.WriteLogAsynk($"HasDevTools:{host.HasDevTools}");
+                    if (host.HasDevTools)
+                        host.CloseDevTools();
+                }).Wait();
 
-                    Instance._fileWriter.WriteLogAsynk($"Start CloseDevTools");
-                    Cef.UIThreadTaskFactory.StartNew(() =>
-                    {
-                        var host = Instance.browser.GetBrowserHost();
-                        Instance._fileWriter.WriteLogAsynk($"HasDevTools:{host.HasDevTools}");
-                        if (host.HasDevTools)
-                            host.CloseDevTools();
-                    }).Wait();
+                Instance._fileWriter.WriteLogAsynk($"End CloseDevTools");
 
-                    Instance._fileWriter.WriteLogAsynk($"End CloseDevTools");
+                Thread.Sleep(500);
+                Instance._fileWriter.Stop();
+                Application.Exit();
+            })
+            {
+                IsBackground = true,
+                Name = "ExitThread",
+            };
 
-                    Thread.Sleep(500);
-                    Application.Exit();
-                })
-                {
-                    IsBackground = true,
-                    Name = "ExitThread",
-                };
-
-                thread.Start();
-            }
+            thread.Start();
         }
 
         private void toolStripLabel1_Click(object sender, EventArgs e)
         {
 
-        }
-
-        private void eternalCookiesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            EternalCookies();
-        }
-
-        private static object _lock = new object();
-        public static void EternalCookies()
-        {
-            return;
-
-            lock (_lock)
-            {
-                List<Cookie> _cookies = new List<Cookie>(1000);
-
-                ICookieManager cookieManager = Cef.GetGlobalCookieManager();
-                cookieManager.VisitAllCookiesAsync().ContinueWith(x =>
-                {
-                    cookieManager.DeleteCookiesAsync().ContinueWith(y =>
-                    {
-                        var t = cookieManager.VisitAllCookiesAsync().Result;
-
-                        Dictionary<Cookie, bool> resSet = new Dictionary<Cookie, bool>();
-                        foreach (var cookie in x.Result)
-                        {
-                            cookie.Expires = DateTime.Now.AddYears(10);
-                            resSet[cookie] = cookieManager.SetCookie("*", cookie);
-                        }
-
-                        var t2 = cookieManager.VisitAllCookiesAsync().Result;
-
-                    });
-                });
-            }
-        }
-
-        private class CookieVisitor : ICookieVisitor
-        {
-            private List<Cookie> _cookies = new List<Cookie>(1000);
-            public Cookie[] Result => _cookies.ToArray();
-
-            private ICookieManager cookieManager;
-
-            public CookieVisitor(ICookieManager cookieManager)
-            {
-                this.cookieManager = cookieManager;
-            }
-
-            public void Dispose()
-            {
-
-            }
-
-            public bool Visit(Cookie cookie, int count, int total, ref bool deleteCookie)
-            {
-                if (cookie.Expires == null || cookie.Expires < DateTime.Now.AddYears(1))
-                    _cookies.Add(cookie);
-                return true;
-            }
         }
     }
 }

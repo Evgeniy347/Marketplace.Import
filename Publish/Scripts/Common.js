@@ -128,7 +128,7 @@ function MPS_SetEternalCookies() {
     now.setTime(now.getTime() + (500 * 24 * 60 * 60 * 1000));
 
     for (var i = 0; i < cookies.length; i++) {
-        var cookie = cookies[i]; 
+        var cookie = cookies[i];
         document.cookie = cookie.Name +
             "=" +
             cookie.Value +
@@ -195,6 +195,11 @@ function MPS_PushLog(message) {
     }
 }
 
+function MPS_UpdateLog(fun) {
+    fun(window.MPS_Context);
+    MPS_SaveContext();
+}
+
 function MPS_CreateGetBuilder() {
     var request = new XMLHttpRequest();
     request.MPS_RequestHeaders = [];
@@ -221,12 +226,8 @@ function MPS_CreateGetBuilder() {
                     var strResp = typeof request.response === "string"
                         ? request.response
                         : JSON.stringify(request.response);
-                    console.log("Send" +
-                        request.MethodName +
-                        "Responce \r\n State:" +
-                        this.readyState +
-                        "\n\rParams: " +
-                        strResp);
+                    console.log("\r\nSend " + request.MethodName + "Responce State:" + this.status +
+                        "\n\rParams: " + strResp);
 
                     if (this.SuccessStatus.indexOf(this.status) != -1) {
                         if (this.mps_callback)
@@ -238,6 +239,14 @@ function MPS_CreateGetBuilder() {
         console.log("Send" + request.MethodName + ": " + url);
         this.send();
     };
+
+    request.SendPostPromise = function (url, params) {
+        var thisObj = this;
+        var promise = new Promise(function (resolve, reject) {
+            thisObj.SendPost(url, params, resolve);
+        });
+        return promise;
+    }
     return request;
 }
 
@@ -268,12 +277,9 @@ function MPS_CreateRestBuilder() {
                     var strResp = typeof request.response === "string"
                         ? request.response
                         : JSON.stringify(request.response);
-                    console.log("Send" +
-                        request.MethodName +
-                        "Responce \r\n State:" +
-                        this.readyState +
-                        "\n\rParams: " +
-                        strResp);
+
+                    console.log("\r\nSend " + request.MethodName + "Responce State:" + this.status +
+                        "\n\rParams: " + strResp);
 
                     if (this.SuccessStatus.indexOf(this.status) != -1) {
                         if (this.mps_callback)
@@ -287,6 +293,15 @@ function MPS_CreateRestBuilder() {
         this.send(json);
         console.log("Send" + request.MethodName + ": " + url + "\n\rParams: " + json);
     };
+
+    request.SendPostPromise = function (url, params) {
+        var thisObj = this;
+        var promise = new Promise(function (resolve, reject) {
+            thisObj.SendPost(url, params, resolve);
+        });
+        return promise;
+    }
+
     return request;
 }
 
@@ -376,9 +391,10 @@ function MPS_DownloadBlob(blob, filename) {
         var url = URL.createObjectURL(blob);
 
         a.href = url;
+        MPS_PushLog("DownloadBlob url " + url);
         a.download = filename;
         document.body.appendChild(a);
-        a.click(); 
+        a.click();
     }
 }
 

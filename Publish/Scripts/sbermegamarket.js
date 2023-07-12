@@ -97,8 +97,8 @@ function MPS_FileBalanceDownload() {
 function MPS_FileBalanceDownloadCallBack(responce) {
     MPS_PushLog("FileBalanceDownloadCallBack");
 
-    MPS_DownloadData(responce, "FileBalance.xlsx", "application/octet-stream");
-    window.MPS_Context.FileBalanceDownload = true;
+    MPS_DownloadData(responce, "FileBalance.xlsx", "application/octet-stream"); 
+    MPS_UpdateLog(function (x) { x.FileBalanceDownload = true; });
     MPS_CheckStopScript();
 }
 
@@ -196,8 +196,8 @@ function MPS_CheckStatusExportCallBack(responce) {
 function MPS_ReportExportDonloadCallback(responce) {
     MPS_PushLog("ReportExportDonloadCallback");
 
-    MPS_DownloadData(responce, "Report.xls", "application/octet-stream");
-    window.MPS_Context.FileReportDownload = true;
+    MPS_DownloadData(responce, "Report.xls", "application/octet-stream"); 
+    MPS_UpdateLog(function (x) { x.FileReportDownload = true; });
     MPS_CheckStopScript();
 }
 

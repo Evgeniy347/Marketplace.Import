@@ -78,7 +78,7 @@ namespace Marketplace.Import
                         if (File.Exists(downloadItem.FullPath))
                             File.Delete(downloadItem.FullPath);
 
-                        _fileWriter.WriteLogAsynk("OnBeforeDownload fullPath:{}");
+                        _fileWriter.WriteLogAsynk($"OnBeforeDownload FullPath:{fullPath} OriginalUrl:{downloadItem.OriginalUrl}");
                         callback.Continue(fullPath, false);
                         _downloadCallbacks[downloadItem.OriginalUrl] = downloadItem;
                     }

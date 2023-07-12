@@ -56,11 +56,12 @@ function MPS_CreateExportReport() {
 
 function MPS_CreateExportReportCallback(responce) {
     MPS_PushLog("MPS_CreateExportReportCallback");
-    MPS_ReportStatus(responce.code);
+    setTimeout(MPS_ReportStatus, 1000, { code: responce.code, callback: MPS_GetList, info: "Report" });
 }
 
-function MPS_ReportStatus(code) {
-    MPS_PushLog("MPS_ReportStatus");
+function MPS_ReportStatus(arg) {
+
+    MPS_PushLog("MPS_ReportStatus " + arg.info);
 
     var url = "https://seller.ozon.ru/api/site/report-service/report/status";
     var request = MPS_CreateRestBuilder();
@@ -68,23 +69,23 @@ function MPS_ReportStatus(code) {
     request.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
     request.AddRequestHeader("x-o3-language", "ru");
 
-    request.SendPost(url, { code: code }, MPS_ReportStatusCallback, code);
+    request.SendPost(url, { code: arg.code }, MPS_ReportStatusCallback, arg);
 }
 
-function MPS_ReportStatusCallback(parameters, code) {
+function MPS_ReportStatusCallback(parameters, arg) {
     MPS_PushLog("MPS_ReportStatusCallback");
 
-    if (parameters.status == "failed") { 
+    if (parameters.status == "failed") {
         console.log("status failed");
         console.log("StopAppScript");
     }
-     
+
     if ((parameters.status == "processing" ||
         parameters.status == "waiting") &&
         parameters.error_code == 0) {
-        setTimeout(MPS_ReportStatus, 1000, code);
+        setTimeout(MPS_ReportStatus, 3000, arg);
     } else {
-        MPS_GetList(code);
+        setTimeout(function () { arg.callback(arg.code) }, 1000);
     }
 }
 
@@ -101,39 +102,6 @@ function MPS_GetList(code) {
     request.AddRequestHeader("x-o3-language", "ru");
 
     request.SendPost(url, params, MPS_GetListCallback);
-}
-
-function MPS_GetGraphs() {
-    MPS_PushLog("MPS_GetGraphs");
-    var url = "https://seller.ozon.ru/api/site/seller-analytics/data/v1/xlsx";
-
-    var dateTo = new Date();
-    var dateFrom = dateTo.addDays(-40); // 40 дней от текущей даты
-
-    var params = {
-        "filters": [],
-        "metrics": ["ordered_units", "session_view", "session_view_pdp", "conv_tocart_pdp", "revenue", "cancellations", "returns", "position_category"],
-        "dimensions": ["category3", "sku", "day", "modelID"],
-        "date_from": dateFrom.toStringMPS("yyyy-MM-dd"),
-        "date_to": dateTo.toStringMPS("yyyy-MM-dd"),
-        "is_action": false
-    };
-
-    var request = MPS_CreateRestBuilder();
-    request.ResponseType = 'arraybuffer';
-    request.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
-    request.AddRequestHeader("x-o3-language", "ru");
-
-    request.SendPost(url, params, MPS_GetGraphsCallback);
-}
-
-
-function MPS_GetGraphsCallback(responce) {
-    MPS_PushLog("MPS_GetGraphsCallback");
-    MPS_DownloadData(responce, "graphs.xlsx", "application/octet-stream");
-    window.MPS_Context.DownloadGraphs = true;
-
-    MPS_CheckStopScript();
 }
 
 function MPS_GetListCallback(responce) {
@@ -153,13 +121,86 @@ function MPS_GetListCallback(responce) {
     builder.AddRequestHeader("accept-language", "ru");
     builder.ResponseType = "text";
 
-    builder.SendPost(fileUrl, MPS_DonloadFileCallback);
+    builder.SendPost(fileUrl, MPS_DownloadFileCallback);
 }
 
-function MPS_DonloadFileCallback(responce) {
+function MPS_GetGraphs() {
+
+    MPS_PushLog("MPS_GetGraphs");
+    var url = "https://seller.ozon.ru/api/site/report/data/v1/xlsx";
+
+    var dateTo = new Date();
+    var dateFrom = dateTo.addDays(-40); // 40 дней от текущей даты
+
+    var params = {
+        "filters": [],
+        "metrics": ["ordered_units", "session_view", "session_view_pdp", "conv_tocart_pdp", "revenue", "cancellations", "returns", "position_category"],
+        "dimensions": ["category3", "sku", "day", "modelID"],
+        "date_from": dateFrom.toStringMPS("yyyy-MM-dd"),
+        "date_to": dateTo.toStringMPS("yyyy-MM-dd"),
+        "is_action": false
+    };
+
+    var request = MPS_CreateRestBuilder(); 
+    request.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
+    request.AddRequestHeader("x-o3-language", "ru");
+
+    request.SendPost(url, params, MPS_CreateExportGraphsCallback);
+}
+
+function MPS_CreateExportGraphsCallback(responce) {
+    MPS_PushLog("MPS_CreateExportGraphsCallback");
+    setTimeout(MPS_ReportStatus, 1000, { code: responce.code, callback: MPS_GetListGraphscode, info: "Graphs" });
+}
+  
+function MPS_GetListGraphscode(code) {
+    MPS_PushLog("MPS_GetListGraphscode");
+    var url = "https://seller.ozon.ru/api/site/report-service/report/list";
+
+    var params = {
+        "filter": { "code": [code] }
+    };
+ 
+    var request = MPS_CreateRestBuilder();
+    request.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
+    request.AddRequestHeader("x-o3-language", "ru");
+
+    request.SendPost(url, params, MPS_GetGraphsDownload);
+}
+
+function MPS_GetGraphsDownload(responce) {
+    MPS_PushLog("MPS_GetGraphsDownload");
+
+    var fileSourceUrl = new URL(responce.result[0].file);
+    var path = MPS_TrimChar(fileSourceUrl.pathname, "/");
+    console.log("source file url:" + fileSourceUrl);
+
+    var fileUrl = "https://seller.ozon.ru/api/site/storage/" + btoa(path);
+    console.log("full file url:" + fileUrl);
+
+    var builder = MPS_CreateGetBuilder();
+    builder.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
+    builder.AddRequestHeader("x-o3-language", "ru");
+    builder.AddRequestHeader("accept", "application/json, text/plain, */*");
+    builder.AddRequestHeader("accept-language", "ru"); 
+    builder.ResponseType = 'arraybuffer';
+
+    builder.SendPost(fileUrl, MPS_GetGraphsDownloadCallback);
+}
+
+function MPS_GetGraphsDownloadCallback(responce) {
+    MPS_PushLog("MPS_GetGraphsDownloadCallback");
+    MPS_DownloadData(responce, "graphs.xlsx", "application/octet-stream");
+    MPS_UpdateLog(function (x) { x.DownloadGraphs = true; });
+    MPS_SaveContext();
+
+    MPS_CheckStopScript();
+}
+
+function MPS_DownloadFileCallback(responce) {
     MPS_PushLog("MPS_DownloadFileCallback");
     MPS_DownloadData(responce, "report.csv", "application/octet-stream");
-    window.MPS_Context.DownloadList = true;
+    MPS_UpdateLog(function (x) { x.DownloadList = true; });
 
     MPS_CheckStopScript();
 }

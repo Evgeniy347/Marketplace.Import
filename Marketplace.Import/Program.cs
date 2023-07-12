@@ -27,6 +27,13 @@ namespace Marketplace.Import
                 AppSetting.InitArgs(namesParams);
             }
 
+            try
+            {
+                if (File.Exists("debug.log"))
+                    File.Delete("debug.log");
+            }
+            catch { }
+
             // Programmatically enable DPI Aweness
             // Can also be done via app.manifest or app.config
             // https://github.com/cefsharp/CefSharp/wiki/General-Usage#high-dpi-displayssupport

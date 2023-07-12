@@ -134,6 +134,13 @@ function MPS_Authorization() {
 
     MPS_PushLog("FindLoginAndPassorkInput");
 
+    var el = document.getElementById("baxia-dialog-content");
+    if (el) {
+        console.log("Необходим ввод капчи. Закрываем страницу.");
+        console.log("StopAppScript");
+        return;
+    }
+
     var buttonOK = document.querySelector("button[type=submit]");
 
     loginInput.focus();
@@ -144,6 +151,12 @@ function MPS_Authorization() {
     MPS_PushLog("ClickAutorize");
 
     setTimeout(function () {
+
+        var el = document.getElementById("baxia-dialog-content");
+        if (el) {
+            console.log("Необходим ввод капчи. Закрываем страницу.");
+            console.log("StopAppScript");
+        }
 
         buttonOK.click();
 

@@ -223,11 +223,8 @@ function MPS_CreateGetBuilder() {
             () => {
 
                 if (this.readyState === 4) {
-                    var strResp = typeof request.response === "string"
-                        ? request.response
-                        : JSON.stringify(request.response);
-                    console.log("\r\nSend " + request.MethodName + "Responce State:" + this.status +
-                        "\n\rParams: " + strResp);
+                     
+                    MPS_WriteResponceLog(request, this.status);
 
                     if (this.SuccessStatus.indexOf(this.status) != -1) {
                         if (this.mps_callback)
@@ -248,6 +245,16 @@ function MPS_CreateGetBuilder() {
         return promise;
     }
     return request;
+}
+
+function MPS_WriteResponceLog(request, status) {
+    var strResp = typeof request.response === "string"
+        ? request.response
+        : JSON.stringify(request.response);
+
+    strResp = strResp ? strResp.substring(0, 2000) : "";
+
+    console.log("\r\nSend " + request.MethodName + " Responce State:" + status + "\n\rParams: " + strResp); 
 }
 
 function MPS_CreateRestBuilder() {
@@ -273,13 +280,9 @@ function MPS_CreateRestBuilder() {
         this.addEventListener("readystatechange",
             () => {
 
-                if (this.readyState === 4) {
-                    var strResp = typeof request.response === "string"
-                        ? request.response
-                        : JSON.stringify(request.response);
+                if (this.readyState === 4) {  
 
-                    console.log("\r\nSend " + request.MethodName + "Responce State:" + this.status +
-                        "\n\rParams: " + strResp);
+                    MPS_WriteResponceLog(request, this.status);
 
                     if (this.SuccessStatus.indexOf(this.status) != -1) {
                         if (this.mps_callback)

@@ -136,7 +136,6 @@ namespace Marketplace.Import
             // urlTextBox
             // 
             this.urlTextBox.AutoSize = false;
-            this.urlTextBox.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.urlTextBox.Name = "urlTextBox";
             this.urlTextBox.Size = new System.Drawing.Size(500, 25);
             this.urlTextBox.KeyUp += new System.Windows.Forms.KeyEventHandler(this.UrlTextBoxKeyUp);

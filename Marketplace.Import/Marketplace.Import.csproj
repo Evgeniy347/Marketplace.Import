@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\CefSharp.Common.104.4.180\build\CefSharp.Common.props" Condition="Exists('..\packages\CefSharp.Common.104.4.180\build\CefSharp.Common.props')" />
-  <Import Project="..\packages\cef.redist.x86.104.4.18\build\cef.redist.x86.props" Condition="Exists('..\packages\cef.redist.x86.104.4.18\build\cef.redist.x86.props')" />
-  <Import Project="..\packages\cef.redist.x64.104.4.18\build\cef.redist.x64.props" Condition="Exists('..\packages\cef.redist.x64.104.4.18\build\cef.redist.x64.props')" />
+  <Import Project="..\packages\CefSharp.Common.114.2.120\build\CefSharp.Common.props" Condition="Exists('..\packages\CefSharp.Common.114.2.120\build\CefSharp.Common.props')" />
+  <Import Project="..\packages\cef.redist.x86.114.2.12\build\cef.redist.x86.props" Condition="Exists('..\packages\cef.redist.x86.114.2.12\build\cef.redist.x86.props')" />
+  <Import Project="..\packages\cef.redist.x64.114.2.12\build\cef.redist.x64.props" Condition="Exists('..\packages\cef.redist.x64.114.2.12\build\cef.redist.x64.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -86,10 +86,10 @@
   </PropertyGroup>
   <PropertyGroup />
   <PropertyGroup>
-    <ManifestCertificateThumbprint>590A8FE2BFF5337DC6885AC13EED368C3B18F8AD</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>FCA86621ED3A8C2D249950DACCB1BC0F780D38BB</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>Marketplace.Import_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>Marketplace.Import_1_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
@@ -97,18 +97,21 @@
   <PropertyGroup>
     <SignManifests>true</SignManifests>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>Marketplace.Import_1_TemporaryKey.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CefSharp, Version=104.4.180.0, Culture=neutral, PublicKeyToken=40c4b6fc221f4138">
-      <HintPath>..\packages\CefSharp.Common.104.4.180\lib\net452\CefSharp.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="CefSharp, Version=114.2.120.0, Culture=neutral, PublicKeyToken=40c4b6fc221f4138, processorArchitecture=MSIL">
+      <HintPath>..\packages\CefSharp.Common.114.2.120\lib\net452\CefSharp.dll</HintPath>
     </Reference>
-    <Reference Include="CefSharp.Core, Version=104.4.180.0, Culture=neutral, PublicKeyToken=40c4b6fc221f4138">
-      <HintPath>..\packages\CefSharp.Common.104.4.180\lib\net452\CefSharp.Core.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="CefSharp.Core, Version=114.2.120.0, Culture=neutral, PublicKeyToken=40c4b6fc221f4138, processorArchitecture=MSIL">
+      <HintPath>..\packages\CefSharp.Common.114.2.120\lib\net452\CefSharp.Core.dll</HintPath>
     </Reference>
-    <Reference Include="CefSharp.WinForms, Version=104.4.180.0, Culture=neutral, PublicKeyToken=40c4b6fc221f4138">
-      <HintPath>..\packages\CefSharp.WinForms.104.4.180\lib\net452\CefSharp.WinForms.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="CefSharp.WinForms, Version=114.2.120.0, Culture=neutral, PublicKeyToken=40c4b6fc221f4138, processorArchitecture=MSIL">
+      <HintPath>..\packages\CefSharp.WinForms.114.2.120\lib\net452\CefSharp.WinForms.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -174,8 +177,10 @@
     <None Include="crash_reporter.cfg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Marketplace.Import_1_TemporaryKey.pfx" />
     <None Include="Marketplace.Import_TemporaryKey.pfx" />
     <None Include="packages.config" />
+    <None Include="qwer.snk" />
     <None Include="Resources\nav_left_green.png" />
   </ItemGroup>
   <ItemGroup>
@@ -209,5 +214,14 @@
   <Target Name="CefSharpAfterBuildDebug" AfterTargets="AfterBuild">
     <CallTarget Targets="CefSharpAfterBuildDiagnostic" />
   </Target>
-  <Import Project="..\packages\CefSharp.Common.104.4.180\build\CefSharp.Common.targets" Condition="Exists('..\packages\CefSharp.Common.104.4.180\build\CefSharp.Common.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\cef.redist.x64.114.2.12\build\cef.redist.x64.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x64.114.2.12\build\cef.redist.x64.props'))" />
+    <Error Condition="!Exists('..\packages\cef.redist.x86.114.2.12\build\cef.redist.x86.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x86.114.2.12\build\cef.redist.x86.props'))" />
+    <Error Condition="!Exists('..\packages\CefSharp.Common.114.2.120\build\CefSharp.Common.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.114.2.120\build\CefSharp.Common.props'))" />
+    <Error Condition="!Exists('..\packages\CefSharp.Common.114.2.120\build\CefSharp.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.114.2.120\build\CefSharp.Common.targets'))" />
+  </Target>
+  <Import Project="..\packages\CefSharp.Common.114.2.120\build\CefSharp.Common.targets" Condition="Exists('..\packages\CefSharp.Common.114.2.120\build\CefSharp.Common.targets')" />
 </Project>

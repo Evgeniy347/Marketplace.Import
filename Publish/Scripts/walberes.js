@@ -4,6 +4,8 @@ function MPS_Init() {
 
     if (!window.MPS_Context)
         return;
+         
+    MPS_SetCookie("locale", "ru");
 
     if (location.href.startsWith("https://seller.wildberries.ru/login")) {
         MPS_PushLog("StartAuth");

@@ -38,7 +38,7 @@ namespace Marketplace.Import
             // Can also be done via app.manifest or app.config
             // https://github.com/cefsharp/CefSharp/wiki/General-Usage#high-dpi-displayssupport
             // If set via app.manifest this call will have no effect.
-            Cef.EnableHighDPISupport();
+            //Cef.EnableHighDPISupport();
 
             var settings = new CefSettings()
             {

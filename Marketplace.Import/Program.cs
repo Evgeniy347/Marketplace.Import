@@ -40,7 +40,7 @@ namespace Marketplace.Import
                 // Can also be done via app.manifest or app.config
                 // https://github.com/cefsharp/CefSharp/wiki/General-Usage#high-dpi-displayssupport
                 // If set via app.manifest this call will have no effect.
-                //Cef.EnableHighDPISupport();
+                Cef.EnableHighDPISupport();
 
                 if (!Directory.Exists(AppSetting.FolderCache))
                     throw new DirectoryNotFoundException(AppSetting.FolderCache);
@@ -49,6 +49,7 @@ namespace Marketplace.Import
                 {
                     //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
                     CachePath = AppSetting.FolderCache,
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
                     PersistSessionCookies = true,
                 };
 
@@ -72,7 +73,7 @@ namespace Marketplace.Import
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ex}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"{ex}", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             return 0;
 

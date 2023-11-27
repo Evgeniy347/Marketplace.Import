@@ -26,8 +26,8 @@ function MPS_Init() {
 }
 
 function MPS_CreateExport() {
-    MPS_CreateExportReport();
-    MPS_GetGraphs();
+    setTimeout(function () { MPS_CreateExportReport() }, 400);
+    setTimeout(function () { MPS_GetGraphs() }, 600);
 }
 
 function MPS_CreateExportReport() {
@@ -56,7 +56,7 @@ function MPS_CreateExportReport() {
 
 function MPS_CreateExportReportCallback(responce) {
     MPS_PushLog("MPS_CreateExportReportCallback");
-    setTimeout(MPS_ReportStatus, 1000, { code: responce.code, callback: MPS_GetList, info: "Report" });
+    setTimeout(MPS_ReportStatus, 3000, { code: responce.code, callback: MPS_GetList, info: "Report" });
 }
 
 function MPS_ReportStatus(arg) {
@@ -85,7 +85,7 @@ function MPS_ReportStatusCallback(parameters, arg) {
         parameters.error_code == 0) {
         setTimeout(MPS_ReportStatus, 3000, arg);
     } else {
-        setTimeout(function () { arg.callback(arg.code) }, 1000);
+        setTimeout(function () { arg.callback(arg.code) }, 2000);
     }
 }
 
@@ -121,13 +121,13 @@ function MPS_GetListCallback(responce) {
     builder.AddRequestHeader("accept-language", "ru");
     builder.ResponseType = "text";
 
-    builder.SendPost(fileUrl, MPS_DownloadFileCallback);
+    setTimeout(function () { builder.SendPost(fileUrl, MPS_DownloadFileCallback) }, 600);
 }
 
 function MPS_GetGraphs() {
 
     MPS_PushLog("MPS_GetGraphs");
-    var url = "https://seller.ozon.ru/api/site/report/data/v1/xlsx";
+    var url = "https://seller.ozon.ru/api/v1/report/data-v1-xlsx";
 
     var dateTo = new Date();
     var dateFrom = dateTo.addDays(-40); // 40 дней от текущей даты
@@ -135,54 +135,94 @@ function MPS_GetGraphs() {
     var params = {
         "filters": [],
         "metrics": ["ordered_units", "session_view", "session_view_pdp", "conv_tocart_pdp", "revenue", "cancellations", "returns", "position_category"],
-        "dimensions": ["category3", "sku", "day", "modelID"],
+        "dimensions": ["brand", "category3", "sku", "day", "modelID"],
         "date_from": dateFrom.toStringMPS("yyyy-MM-dd"),
         "date_to": dateTo.toStringMPS("yyyy-MM-dd"),
         "is_action": false
     };
 
-    var request = MPS_CreateRestBuilder(); 
+    var request = MPS_CreateRestBuilder();
     request.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
     request.AddRequestHeader("x-o3-language", "ru");
+    request.AddRequestHeader("x-o3-app-name", "seller-ui");
+    request.AddRequestHeader("x-o3-page-type", "analytics-other");
 
     request.SendPost(url, params, MPS_CreateExportGraphsCallback);
 }
 
 function MPS_CreateExportGraphsCallback(responce) {
     MPS_PushLog("MPS_CreateExportGraphsCallback");
-    setTimeout(MPS_ReportStatus, 1000, { code: responce.code, callback: MPS_GetListGraphscode, info: "Graphs" });
+    setTimeout(MPS_ReportStatusV1, 2600, { code: responce.code, callback: MPS_GetGraphsDownload, info: "Graphs" });
 }
-  
-function MPS_GetListGraphscode(code) {
-    MPS_PushLog("MPS_GetListGraphscode");
-    var url = "https://seller.ozon.ru/api/site/report-service/report/list";
 
-    var params = {
-        "filter": { "code": [code] }
-    };
- 
-    var request = MPS_CreateRestBuilder();
+function MPS_ReportStatusV1(arg) {
+
+    MPS_PushLog("MPS_ReportStatusV1 " + arg.info);
+
+    var url = "https://seller.ozon.ru/api/v1/report/status/" + arg.code;
+    var request = MPS_CreateGetBuilder();
+
     request.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
     request.AddRequestHeader("x-o3-language", "ru");
+    request.AddRequestHeader("x-o3-app-name", "seller-ui");
+    request.AddRequestHeader("x-o3-page-type", "analytics-other");
+    request.AddRequestHeader("accept", "application/json, text/plain, */*");
+    request.AddRequestHeader("accept-language", "ru");
 
-    request.SendPost(url, params, MPS_GetGraphsDownload);
+    request.SendPost(url, MPS_ReportStatusV1Callback, arg);
+}
+ 
+function MPS_ReportStatusV1Callback(parameters, arg) {
+    MPS_PushLog("MPS_ReportStatusV1Callback");
+
+    if (parameters.status == "failed") {
+        console.log("status failed");
+        console.log("StopAppScript");
+    }
+
+    if ((parameters.status == "processing" ||
+        parameters.status == "waiting") &&
+        parameters.error_code == 0) {
+        setTimeout(MPS_ReportStatusV1, 3000, arg);
+    } else {
+        setTimeout(function () { arg.callback(arg.code) }, 2000);
+    }
+}
+ 
+function MPS_ReportDownloadGraphV1(parameters, arg) {
+    MPS_PushLog("MPS_ReportStatusV1Callback");
+    var responceText = String.fromCharCode.apply(null, new Uint8Array(array));
+    console.log(responceText);
+    var parameters = JSON.parse(responceText);
+
+    if (parameters.status == "failed") {
+        console.log("status failed");
+        console.log("StopAppScript");
+    }
+
+    if ((parameters.status == "processing" ||
+        parameters.status == "waiting") &&
+        parameters.error_code == 0) {
+        setTimeout(MPS_ReportStatusV1, 3000, arg);
+    }
+    else {
+        MPS_GetGraphsDownload(code);
+    }
 }
 
-function MPS_GetGraphsDownload(responce) {
+function MPS_GetGraphsDownload(code) {
     MPS_PushLog("MPS_GetGraphsDownload");
 
-    var fileSourceUrl = new URL(responce.result[0].file);
-    var path = MPS_TrimChar(fileSourceUrl.pathname, "/");
-    console.log("source file url:" + fileSourceUrl);
-
-    var fileUrl = "https://seller.ozon.ru/api/site/storage/" + btoa(path);
+    var fileUrl = "https://seller.ozon.ru/api/v1/report/download/" + code;
     console.log("full file url:" + fileUrl);
 
     var builder = MPS_CreateGetBuilder();
     builder.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
     builder.AddRequestHeader("x-o3-language", "ru");
+    builder.AddRequestHeader("x-o3-app-name", "seller-ui");
+    builder.AddRequestHeader("x-o3-page-type", "analytics-other");
     builder.AddRequestHeader("accept", "application/json, text/plain, */*");
-    builder.AddRequestHeader("accept-language", "ru"); 
+    builder.AddRequestHeader("accept-language", "ru");
     builder.ResponseType = 'arraybuffer';
 
     builder.SendPost(fileUrl, MPS_GetGraphsDownloadCallback);

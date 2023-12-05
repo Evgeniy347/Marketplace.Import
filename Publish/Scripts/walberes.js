@@ -64,8 +64,9 @@ function MPS_CreateConsolidatedCallback(responce) {
     MPS_PushLog("MPS_CreateConsolidatedCallback");
     console.log(responce);
 
-    MPS_DownloadBase64Data(responce.data.file, "Consolidated.XLSX", "application/octet-stream");
-    window.MPS_Context.ConsolidatedDownload = true;
+    MPS_DownloadBase64Data(responce.data.file, "Consolidated.XLSX", "application/octet-stream"); 
+
+    MPS_UpdateLog(function (x) { x.ConsolidatedDownload = true; });
     MPS_CheckStopScript();
 }
 
@@ -95,14 +96,16 @@ function MPS_CreateWeeklydynamicsCallback(responce) {
     MPS_PushLog("MPS_CreateWeeklydynamicsCallback");
     console.log(responce);
 
-    MPS_DownloadBase64Data(responce.data.excelReportWeeklyTable, "Weeklydynamics.XLSX", "application/octet-stream");
-    window.MPS_Context.WeeklydynamicsDownload = true;
+    MPS_DownloadBase64Data(responce.data.excelReportWeeklyTable, "Weeklydynamics.XLSX", "application/octet-stream"); 
+    MPS_UpdateLog(function (x) { x.WeeklydynamicsDownload = true; });
     MPS_CheckStopScript();
 }
 
 function MPS_CheckStopScript() {
     if (window.MPS_Context.WeeklydynamicsDownload && window.MPS_Context.ConsolidatedDownload)
         console.log("StopAppScript");
+    else
+        MPS_PushLog("MPS_CheckStopScript"); 
 }
 
 MPS_Init();

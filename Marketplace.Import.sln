@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marketplace.Import", "Marke
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marketplace.ConvertKey", "Marketplace.ConvertKey\Marketplace.ConvertKey.csproj", "{3D784E46-CADB-4445-B922-61100F96E3E7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHarService", "TestHarService\TestHarService.csproj", "{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +60,18 @@ Global
 		{3D784E46-CADB-4445-B922-61100F96E3E7}.Release|x64.Build.0 = Release|Any CPU
 		{3D784E46-CADB-4445-B922-61100F96E3E7}.Release|x86.ActiveCfg = Release|Any CPU
 		{3D784E46-CADB-4445-B922-61100F96E3E7}.Release|x86.Build.0 = Release|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Debug|x64.Build.0 = Debug|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Debug|x86.Build.0 = Debug|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Release|x64.ActiveCfg = Release|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Release|x64.Build.0 = Release|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Release|x86.ActiveCfg = Release|Any CPU
+		{D052E309-732B-4FDC-9E8C-A0AFB448AEEB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

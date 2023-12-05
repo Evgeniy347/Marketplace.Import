@@ -33,7 +33,7 @@ function MPS_CreateExport() {
 function MPS_CreateExportReport() {
     MPS_PushLog("MPS_CreateConsolidatedExport");
 
-    var url = "https://seller.ozon.ru/api/site/report-service/v2/report/company/postings";
+    var url = "https://seller.ozon.ru/api/report/company/postings";
 
     var dateTo = new Date();
     var dateFrom = dateTo.addDays(-40); // 40 дней от текущей даты
@@ -51,50 +51,64 @@ function MPS_CreateExportReport() {
     };
 
     var request = MPS_CreateRestBuilder();
+    request.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
+    request.AddRequestHeader("x-o3-language", "ru");
+
     request.SendPost(url, params, MPS_CreateExportReportCallback);
 }
 
 function MPS_CreateExportReportCallback(responce) {
     MPS_PushLog("MPS_CreateExportReportCallback");
-    setTimeout(MPS_ReportStatus, 3000, { code: responce.code, callback: MPS_GetList, info: "Report" });
+    setTimeout(MPS_ReportStatus, 3000, { code: responce.code, info: "Report" });
 }
 
 function MPS_ReportStatus(arg) {
 
     MPS_PushLog("MPS_ReportStatus " + arg.info);
 
-    var url = "https://seller.ozon.ru/api/site/report-service/report/status";
-    var request = MPS_CreateRestBuilder();
+    var url = "https://seller.ozon.ru/api/report/status";
+    var builder = MPS_CreateRestBuilder();
 
-    request.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
-    request.AddRequestHeader("x-o3-language", "ru");
+    MPS_AddHeaders(builder, "analytics-other");
 
-    request.SendPost(url, { code: arg.code }, MPS_ReportStatusCallback, arg);
+    builder.SendPost(url, { code: arg.code }, MPS_ReportStatusCallback, arg);
 }
 
-function MPS_ReportStatusCallback(parameters, arg) {
+function MPS_AddHeaders(builder, pageType) {
+
+    builder.AddRequestHeader("accept", "application/json, text/plain, */*");
+    builder.AddRequestHeader("accept-language", "ru");
+    builder.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
+    builder.AddRequestHeader("x-o3-language", "ru");
+    builder.AddRequestHeader("x-o3-app-name", "seller-ui");
+
+    if (pageType)
+        builder.AddRequestHeader("x-o3-page-type", pageType);
+}
+
+function MPS_ReportStatusCallback(responce, arg) {
     MPS_PushLog("MPS_ReportStatusCallback");
 
-    if (parameters.status == "failed") {
+    if (responce.status == "failed") {
         console.log("status failed");
         console.log("StopAppScript");
     }
 
-    if ((parameters.status == "processing" ||
-        parameters.status == "waiting") &&
-        parameters.error_code == 0) {
+    if ((responce.status == "processing" ||
+        responce.status == "waiting") &&
+        responce.error_code == 0) {
         setTimeout(MPS_ReportStatus, 3000, arg);
     } else {
-        setTimeout(function () { arg.callback(arg.code) }, 2000);
+        setTimeout(function () { MPS_GetList(arg.code) }, 2000);
     }
 }
 
 function MPS_GetList(code) {
     MPS_PushLog("MPS_GetList");
-    var url = "https://seller.ozon.ru/api/site/report-service/report/list";
+    var url = "https://seller.ozon.ru/api/report/get";
 
     var params = {
-        "filter": { "code": [code] }
+        "code": code
     };
 
     var request = MPS_CreateRestBuilder();
@@ -107,9 +121,11 @@ function MPS_GetList(code) {
 function MPS_GetListCallback(responce) {
     MPS_PushLog("MPS_GetListCallback");
 
-    var fileSourceUrl = new URL(responce.result[0].file);
+    var fileSourceUrl = new URL(responce.result.file);
     var path = MPS_TrimChar(fileSourceUrl.pathname, "/");
     console.log("source file url:" + fileSourceUrl);
+
+    //"https://cdn1.ozone.ru/s3/item-picture-19/e1/29/e129ba4c91e8e2c8ef77f1daceb947a0.csv"
 
     var fileUrl = "https://seller.ozon.ru/api/site/storage/" + btoa(path);
     console.log("full file url:" + fileUrl);
@@ -152,7 +168,7 @@ function MPS_GetGraphs() {
 
 function MPS_CreateExportGraphsCallback(responce) {
     MPS_PushLog("MPS_CreateExportGraphsCallback");
-    setTimeout(MPS_ReportStatusV1, 2600, { code: responce.code, callback: MPS_GetGraphsDownload, info: "Graphs" });
+    setTimeout(MPS_ReportStatusV1, 2600, { code: responce.code, info: "Graphs" });
 }
 
 function MPS_ReportStatusV1(arg) {
@@ -160,18 +176,13 @@ function MPS_ReportStatusV1(arg) {
     MPS_PushLog("MPS_ReportStatusV1 " + arg.info);
 
     var url = "https://seller.ozon.ru/api/v1/report/status/" + arg.code;
-    var request = MPS_CreateGetBuilder();
+    var builder = MPS_CreateGetBuilder();
 
-    request.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
-    request.AddRequestHeader("x-o3-language", "ru");
-    request.AddRequestHeader("x-o3-app-name", "seller-ui");
-    request.AddRequestHeader("x-o3-page-type", "analytics-other");
-    request.AddRequestHeader("accept", "application/json, text/plain, */*");
-    request.AddRequestHeader("accept-language", "ru");
+    MPS_AddHeaders(builder, "analytics-other");
 
-    request.SendPost(url, MPS_ReportStatusV1Callback, arg);
+    builder.SendPost(url, MPS_ReportStatusV1Callback, arg);
 }
- 
+
 function MPS_ReportStatusV1Callback(parameters, arg) {
     MPS_PushLog("MPS_ReportStatusV1Callback");
 
@@ -185,10 +196,10 @@ function MPS_ReportStatusV1Callback(parameters, arg) {
         parameters.error_code == 0) {
         setTimeout(MPS_ReportStatusV1, 3000, arg);
     } else {
-        setTimeout(function () { arg.callback(arg.code) }, 2000);
+        setTimeout(function () { MPS_GetGraphsDownload(arg.code) }, 2000);
     }
 }
- 
+
 function MPS_ReportDownloadGraphV1(parameters, arg) {
     MPS_PushLog("MPS_ReportStatusV1Callback");
     var responceText = String.fromCharCode.apply(null, new Uint8Array(array));
@@ -217,12 +228,7 @@ function MPS_GetGraphsDownload(code) {
     console.log("full file url:" + fileUrl);
 
     var builder = MPS_CreateGetBuilder();
-    builder.AddRequestHeader("x-o3-company-id", MPS_GetCookie("contentId"));
-    builder.AddRequestHeader("x-o3-language", "ru");
-    builder.AddRequestHeader("x-o3-app-name", "seller-ui");
-    builder.AddRequestHeader("x-o3-page-type", "analytics-other");
-    builder.AddRequestHeader("accept", "application/json, text/plain, */*");
-    builder.AddRequestHeader("accept-language", "ru");
+    MPS_AddHeaders(builder, "analytics-other");
     builder.ResponseType = 'arraybuffer';
 
     builder.SendPost(fileUrl, MPS_GetGraphsDownloadCallback);

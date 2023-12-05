@@ -252,8 +252,8 @@ function MPS_DownloadFileCallback(responce) {
 }
 
 function MPS_CheckStopScript() {
-    if (window.MPS_Context.DownloadList && window.MPS_Context.DownloadGraphs)
-        console.log("StopAppScript");
+    if (window.MPS_Context.DownloadList && window.MPS_Context.DownloadGraphs) 
+        setTimeout(function () { console.log("StopAppScript") }, 2000); 
 }
 
 MPS_Init();

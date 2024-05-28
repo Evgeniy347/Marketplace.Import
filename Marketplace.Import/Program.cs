@@ -7,6 +7,7 @@ using CefSharp.WinForms;
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Marketplace.Import
@@ -18,6 +19,11 @@ namespace Marketplace.Import
         {
             try
             {
+
+                WatchDog d = new WatchDog(() => { }, 1);
+
+                Thread.Sleep(100000000);
+
 #if ANYCPU
             CefRuntime.SubscribeAnyCpuAssemblyResolver();
 #endif

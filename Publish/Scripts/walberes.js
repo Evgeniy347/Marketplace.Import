@@ -4,7 +4,7 @@ function MPS_Init() {
 
     if (!window.MPS_Context)
         return;
-         
+
     MPS_SetCookie("locale", "ru");
 
     if (location.href.startsWith("https://seller.wildberries.ru/login")) {
@@ -13,17 +13,14 @@ function MPS_Init() {
         if ("{ShowDevelop}" == "False") {
             console.log("Ждем аутентификацию");
         }
-        else { 
+        else {
             console.log("Нужна аутентификация, закрываем скрипт");
             console.log("StopAppScript");
         }
 
     } else if (location.href.startsWith("https://seller.wildberries.ru/analytics")) {
-        if (!window.document.body.StartAuthorization) {
-            window.document.body.StartAuthorization = true;
-            console.log("DisableBrowser");
-            setTimeout(function () { MPS_CreateExport(); }, 1000);
-        }
+
+        setTimeout(function () { MPS_CreateExport(); }, 800);
     } else {
         //если ничего из вышеперечисленного то вызывает повтроно, возможно будет редирект
         setTimeout(MPS_Init, 1000);
@@ -31,13 +28,31 @@ function MPS_Init() {
 }
 
 function MPS_CreateExport() {
+
+    if (!window.document || !window.document.body) {
+        console.log("NotInitBody");
+        return;
+    }
+
+    var startScript = window.document.body.StartScript;
+
+    console.log("StartScript:" + startScript);
+
+    if (startScript)
+        return;
+
+    window.document.body.StartScript = true;
+
+    console.log("MPS_GetParams");
     var supplierid = MPS_GetParams("SupplierID");
 
+    console.log("supplierid:" + supplierid);
     if (supplierid) {
         MPS_SetCookie("x-supplier-id", supplierid);
         MPS_SetCookie("x-supplier-id-external", supplierid);
     }
 
+    console.log("setTimeout:MPS_CreateConsolidatedExport, MPS_CreateWeeklydynamicsExport");
     setTimeout(function () { MPS_CreateConsolidatedExport(); }, 1000);
     setTimeout(function () { MPS_CreateWeeklydynamicsExport(); }, 1500);
 }
@@ -64,7 +79,7 @@ function MPS_CreateConsolidatedCallback(responce) {
     MPS_PushLog("MPS_CreateConsolidatedCallback");
     console.log(responce);
 
-    MPS_DownloadBase64Data(responce.data.file, "Consolidated.XLSX", "application/octet-stream"); 
+    MPS_DownloadBase64Data(responce.data.file, "Consolidated.XLSX", "application/octet-stream");
 
     MPS_UpdateLog(function (x) { x.ConsolidatedDownload = true; });
     MPS_CheckStopScript();
@@ -96,7 +111,7 @@ function MPS_CreateWeeklydynamicsCallback(responce) {
     MPS_PushLog("MPS_CreateWeeklydynamicsCallback");
     console.log(responce);
 
-    MPS_DownloadBase64Data(responce.data.excelReportWeeklyTable, "Weeklydynamics.XLSX", "application/octet-stream"); 
+    MPS_DownloadBase64Data(responce.data.excelReportWeeklyTable, "Weeklydynamics.XLSX", "application/octet-stream");
     MPS_UpdateLog(function (x) { x.WeeklydynamicsDownload = true; });
     MPS_CheckStopScript();
 }
@@ -105,7 +120,7 @@ function MPS_CheckStopScript() {
     if (window.MPS_Context.WeeklydynamicsDownload && window.MPS_Context.ConsolidatedDownload)
         console.log("StopAppScript");
     else
-        MPS_PushLog("MPS_CheckStopScript"); 
+        MPS_PushLog("MPS_CheckStopScript");
 }
 
 MPS_Init();

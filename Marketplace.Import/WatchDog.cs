@@ -31,12 +31,23 @@ namespace Marketplace.Import
                 DateTime nextReset = _lastReset.AddMilliseconds(_timeout);
 
                 if (nextReset < DateTime.Now)
-                { 
-                    _action.Invoke();
+                {
+                    try
+                    {
+                        _action.Invoke();
+                    }
+                    catch (Exception ex)
+                    {
+                        BrowserForm.Instance.FileWriter.WriteLogAsynk(ex.ToString());
+                    }
                     return;
                 }
 
-                Thread.Sleep(nextReset - DateTime.Now);
+                TimeSpan interval = nextReset - DateTime.Now;
+                if (interval < TimeSpan.FromSeconds(1))
+                    interval = TimeSpan.FromSeconds(1);
+
+                Thread.Sleep(interval);
             }
         }
 

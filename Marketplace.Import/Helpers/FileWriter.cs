@@ -48,7 +48,6 @@ namespace Marketplace.Import.Helpers
             _thread.Join();
         }
 
-
         private void WorkerThread()
         {
             Task.Run(RemoveLogs);
@@ -59,7 +58,7 @@ namespace Marketplace.Import.Helpers
                 lock (_lock)
                 {
                     File.AppendAllLines(_fileName, new string[] { line });
-                    if (_stop && string.IsNullOrEmpty(line))
+                    if (_stop && line == "StopLog")
                         return;
                 }
             }

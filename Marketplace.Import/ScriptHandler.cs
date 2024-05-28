@@ -145,9 +145,7 @@ namespace Marketplace.Import
 
             if (AppSetting.ShowDevelop)
                 ShowDevToolAsynk();
-
-
-
+             
             if (AppSetting.ShowDevelop)
 
                 if (repit)

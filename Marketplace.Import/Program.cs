@@ -18,12 +18,7 @@ namespace Marketplace.Import
         public static int Main(string[] args)
         {
             try
-            {
-
-                WatchDog d = new WatchDog(() => { }, 1);
-
-                Thread.Sleep(100000000);
-
+            { 
 #if ANYCPU
             CefRuntime.SubscribeAnyCpuAssemblyResolver();
 #endif

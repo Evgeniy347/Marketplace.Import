@@ -42,7 +42,7 @@ namespace Marketplace.Import.Helpers
             lock (_lock)
             {
                 _stop = true;
-                WriteLogAsynk("StopLog");
+                WriteLogAsynk("#StopLog#");
                 _values.Add($"");
             }
             _thread.Join();
@@ -58,7 +58,7 @@ namespace Marketplace.Import.Helpers
                 lock (_lock)
                 {
                     File.AppendAllLines(_fileName, new string[] { line });
-                    if (_stop && line == "StopLog")
+                    if (_stop && !string.IsNullOrEmpty(line) && line.Contains("#StopLog#"))
                         return;
                 }
             }

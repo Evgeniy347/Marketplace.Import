@@ -349,7 +349,7 @@ namespace Marketplace.Import
 
         internal static void CloseForm()
         {
-            Instance._fileWriter.WriteLogAsynk($"CloseForm RunScript:{AppSetting.RunScript}{AppSetting.ShowDevelop}");
+            Instance._fileWriter.WriteLogAsynk($"CloseForm RunScript:{AppSetting.RunScript} ShowDevelop:{AppSetting.ShowDevelop}");
 
             if (AppSetting.RunScript && !AppSetting.ShowDevelop) 
                 RunExitThread();

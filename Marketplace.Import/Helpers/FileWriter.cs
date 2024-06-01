@@ -12,6 +12,7 @@ namespace Marketplace.Import.Helpers
         private volatile object _lock = new object();
         private readonly Thread _thread;
         private readonly string _fileName;
+        private readonly StreamWriter _stream;
         private bool _stop;
         private readonly BlockingCollection<string> _values = new BlockingCollection<string>();
 
@@ -28,6 +29,8 @@ namespace Marketplace.Import.Helpers
 
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
+
+            _stream = new StreamWriter(_fileName);
 
             _thread.Start();
         }
@@ -54,12 +57,20 @@ namespace Marketplace.Import.Helpers
 
             while (true)
             {
-                string line = _values.Take();
-                lock (_lock)
+                try
                 {
-                    File.AppendAllLines(_fileName, new string[] { line });
-                    if (_stop && !string.IsNullOrEmpty(line) && line.Contains("#StopLog#"))
-                        return;
+                    string line = _values.Take();
+                    lock (_lock)
+                    {
+                        //File.AppendAllLines(_fileName, new string[] { line });
+                        _stream.WriteLine(line);
+                        if (_stop && !string.IsNullOrEmpty(line) && line.Contains("#StopLog#"))
+                            return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    WriteLogAsynk(ex.ToString());
                 }
             }
         }

@@ -41,7 +41,7 @@ namespace Marketplace.Import
                 // Can also be done via app.manifest or app.config
                 // https://github.com/cefsharp/CefSharp/wiki/General-Usage#high-dpi-displayssupport
                 // If set via app.manifest this call will have no effect.
-                Cef.EnableHighDPISupport();
+                //Cef.EnableHighDPISupport();
 
                 if (!Directory.Exists(AppSetting.FolderCache))
                     throw new DirectoryNotFoundException(AppSetting.FolderCache);
@@ -50,7 +50,7 @@ namespace Marketplace.Import
                 {
                     //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
                     CachePath = AppSetting.FolderCache,
-                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+                    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
                     PersistSessionCookies = true,
                 };
 
@@ -65,7 +65,7 @@ namespace Marketplace.Import
                 settings.CefCommandLineArgs.Add("use-fake-ui-for-media-stream");
                 //For screen sharing add (see https://bitbucket.org/chromiumembedded/cef/issues/2582/allow-run-time-handling-of-media-access#comment-58677180)
                 settings.CefCommandLineArgs.Add("enable-usermedia-screen-capturing");
-
+                
                 //Perform dependency check to make sure all relevant resources are in our output directory.
                 Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
 
